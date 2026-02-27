@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm init:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(npm start:*)",
+      "Bash(npm test:*)",
+      "Bash(npx:*)",
+      "Bash(node:*)",
+      "Bash(mkdir:*)",
+      "Bash(ls:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git status:*)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git branch:*)",
+      "Bash(git checkout:*)",
+      "Bash(git switch:*)",
+      "WebFetch(domain:anotherstoryedu.ca)",
+      "WebFetch(domain:cdn1.bookmanager.com)",
+      "WebFetch(domain:bookmanager.com)",
+      "WebFetch(domain:registry.npmjs.org)",
+      "Bash(git -C /Users/steveariss/Sites/personal/ai/book-picker status)",
+      "Bash(git -C /Users/steveariss/Sites/personal/ai/book-picker diff --stat)"
+    ],
+    "deny": [
+      "Bash(git push:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(rm -rf:*)"
+    ]
+  }
+}

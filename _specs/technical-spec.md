@@ -560,22 +560,16 @@ export default {
 1. Initialize root `package.json` with workspace scripts.
 2. Set up `client/` with Vite + React.
 3. Set up `server/` with Express + better-sqlite3.
-4. Set up `scraper/` with Playwright.
+4. Set up `scraper/` with Playwright (package.json + dependencies only — implementation is Phase 6).
 5. Configure ESLint, Prettier, `.gitignore`.
 6. Create SQLite schema file.
 7. Add CSS custom properties and base styles.
+8. **Generate mock seed data**: Create `data/books-sample.json` with ~20 fake book entries and placeholder cover/interior images in `data/images/`. This unblocks all frontend and backend development before the scraper runs. The server should fall back to `books-sample.json` if `books.json` does not exist.
 
-### Phase 2: Scraper
-1. Implement API discovery (Phase 1 of scraper).
-2. Implement book list pagination (Phase 2 of scraper).
-3. Implement detail page scraping (Phase 3 of scraper).
-4. Implement image download with concurrency + retry (Phase 4 of scraper).
-5. Implement resumability via state file.
-6. Test with a small subset first, then full run.
+### Phase 2: Backend API
 
-### Phase 3: Backend API
 1. Implement database initialization (`schema.sql` + `init.mjs`).
-2. Implement `GET /api/books` (load JSON, filter deleted).
+2. Implement `GET /api/books` (load JSON, filter deleted). Load `books.json` if it exists, otherwise fall back to `books-sample.json`.
 3. Implement `GET /api/books/all` (load JSON, join with deleted status).
 4. Implement `POST /api/books/delete` and `POST /api/books/restore`.
 5. Implement `POST /api/selections` with validation.
@@ -583,8 +577,10 @@ export default {
 7. Implement `GET /api/selections/csv`.
 8. Implement `DELETE /api/selections`.
 9. Add error handling middleware.
+10. Verify all endpoints work with mock data.
 
-### Phase 4: Frontend — Core Screens
+### Phase 3: Frontend — Core Screens
+
 1. Set up React Router with all routes.
 2. Build TeacherSetup screen.
 3. Build BookBrowsing screen with BookCard grid and lazy loading.
@@ -595,14 +591,16 @@ export default {
 8. Build ThankYou screen with confetti.
 9. Wire up API calls (submit selections, navigate flow).
 
-### Phase 5: Frontend — Carousel
+### Phase 4: Frontend — Carousel
+
 1. Install and configure Swiper (or embla-carousel-react).
 2. Build BookCarousel as a `<dialog>` modal.
 3. Add left/right navigation arrows.
 4. Add PickButton inside carousel.
 5. Test touch/swipe behavior.
 
-### Phase 6: Frontend — Admin Screens
+### Phase 5: Frontend — Admin Screens
+
 1. Build ManageBooks screen with search/filter bar.
 2. Implement virtualized grid with `@tanstack/react-virtual`.
 3. Build AdminBookCard with checkbox.
@@ -612,13 +610,24 @@ export default {
 7. Build Report screen with table and CSV download.
 8. Build clear-all-data flow with ConfirmDialog.
 
+### Phase 6: Scraper
+
+1. Implement API discovery (Phase 1 of scraper).
+2. Implement book list pagination (Phase 2 of scraper).
+3. Implement detail page scraping (Phase 3 of scraper).
+4. Implement image download with concurrency + retry (Phase 4 of scraper).
+5. Implement resumability via state file.
+6. Test with a small subset first, then full run.
+7. Once complete, verify the app works with real scraped data in place of mock data.
+
 ### Phase 7: Polish & Deploy
 1. Add Nunito font (Google Fonts or self-hosted).
 2. Responsive testing on 1366×768 (Chromebook resolution).
 3. Touch target testing (all interactive elements ≥ 48px).
 4. Performance testing with full book dataset.
-5. Set up deployment (Railway, Render, Fly.io, or similar).
-6. Write README with setup/deployment instructions.
+5. **Deployment target: ask the user** which platform to deploy to before proceeding (e.g. Railway, Render, Fly.io, VPS, etc.).
+6. Set up deployment for the chosen platform.
+7. Write README with setup/deployment instructions.
 
 ---
 
