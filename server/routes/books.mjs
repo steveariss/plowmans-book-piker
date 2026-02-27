@@ -10,7 +10,7 @@ export function createBooksRouter(books) {
     const deletedRows = db.prepare('SELECT book_id FROM deleted_books').all();
     const deletedIds = new Set(deletedRows.map((r) => r.book_id));
 
-    const activeBooks = books.filter((b) => !deletedIds.has(b.id));
+    const activeBooks = books.filter((b) => !deletedIds.has(b.id) && !b.hidden);
 
     res.json({
       books: activeBooks,
@@ -29,14 +29,17 @@ export function createBooksRouter(books) {
       title: b.title,
       coverImage: b.coverImage,
       deleted: deletedIds.has(b.id),
+      hidden: b.hidden || false,
     }));
 
     const totalDeleted = allBooks.filter((b) => b.deleted).length;
+    const totalHidden = allBooks.filter((b) => b.hidden).length;
 
     res.json({
       books: allBooks,
-      totalActive: allBooks.length - totalDeleted,
+      totalActive: allBooks.filter((b) => !b.deleted && !b.hidden).length,
       totalDeleted,
+      totalHidden,
       totalAll: allBooks.length,
     });
   });

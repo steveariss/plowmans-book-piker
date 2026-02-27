@@ -17,6 +17,7 @@ export default function AdminBookCard({ book, checked, onToggle }) {
       />
       <span className={styles.title}>{book.title}</span>
       {book.deleted && <span className={styles.badge}>Deleted</span>}
+      {book.hidden && <span className={styles.badgeHidden}>Hidden</span>}
     </label>
   );
 }

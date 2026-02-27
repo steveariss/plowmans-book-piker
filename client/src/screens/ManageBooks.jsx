@@ -10,11 +10,12 @@ import styles from './ManageBooks.module.css';
 export default function ManageBooks() {
   const navigate = useNavigate();
   const [books, setBooks] = useState([]);
-  const [stats, setStats] = useState({ totalActive: 0, totalDeleted: 0, totalAll: 0 });
+  const [stats, setStats] = useState({ totalActive: 0, totalDeleted: 0, totalHidden: 0, totalAll: 0 });
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [checkedIds, setCheckedIds] = useState(new Set());
   const [showDeleted, setShowDeleted] = useState(false);
+  const [showHidden, setShowHidden] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
   const parentRef = useRef(null);
 
@@ -25,6 +26,7 @@ export default function ManageBooks() {
     setStats({
       totalActive: data.totalActive,
       totalDeleted: data.totalDeleted,
+      totalHidden: data.totalHidden,
       totalAll: data.totalAll,
     });
     setIsLoading(false);
@@ -37,9 +39,13 @@ export default function ManageBooks() {
   const filteredBooks = useMemo(() => {
     const q = search.toLowerCase();
     return books
-      .filter((b) => (showDeleted ? b.deleted : !b.deleted))
+      .filter((b) => {
+        if (showDeleted) return b.deleted;
+        if (showHidden) return b.hidden && !b.deleted;
+        return !b.deleted;
+      })
       .filter((b) => !q || b.title.toLowerCase().includes(q));
-  }, [books, search, showDeleted]);
+  }, [books, search, showDeleted, showHidden]);
 
   const virtualizer = useVirtualizer({
     count: filteredBooks.length,
@@ -122,10 +128,24 @@ export default function ManageBooks() {
               checked={showDeleted}
               onChange={(e) => {
                 setShowDeleted(e.target.checked);
+                if (e.target.checked) setShowHidden(false);
                 setCheckedIds(new Set());
               }}
             />
             <span>Show Deleted</span>
+          </label>
+
+          <label className={styles.toggle}>
+            <input
+              type="checkbox"
+              checked={showHidden}
+              onChange={(e) => {
+                setShowHidden(e.target.checked);
+                if (e.target.checked) setShowDeleted(false);
+                setCheckedIds(new Set());
+              }}
+            />
+            <span>Only Hidden</span>
           </label>
 
           <button className={styles.selectAllButton} onClick={handleSelectAll} type="button">
@@ -137,33 +157,35 @@ export default function ManageBooks() {
       <div className={styles.statusBar}>
         <span>{checkedCount} selected</span>
         <span>{'\u00B7'}</span>
-        <span>{stats.totalActive} active of {stats.totalAll} total</span>
+        <span>{stats.totalActive} active of {stats.totalAll} total ({stats.totalHidden} hidden)</span>
         <span>{'\u00B7'}</span>
         <span>Showing {filteredBooks.length}</span>
       </div>
 
-      <div className={styles.actions}>
-        {!showDeleted && (
-          <button
-            className={styles.deleteButton}
-            disabled={checkedCount === 0}
-            onClick={() => setConfirmAction('delete')}
-            type="button"
-          >
-            Delete Selected ({checkedCount})
-          </button>
-        )}
-        {showDeleted && (
-          <button
-            className={styles.restoreButton}
-            disabled={checkedCount === 0}
-            onClick={() => setConfirmAction('restore')}
-            type="button"
-          >
-            Restore Selected ({checkedCount})
-          </button>
-        )}
-      </div>
+      {!showHidden && (
+        <div className={styles.actions}>
+          {!showDeleted && (
+            <button
+              className={styles.deleteButton}
+              disabled={checkedCount === 0}
+              onClick={() => setConfirmAction('delete')}
+              type="button"
+            >
+              Delete Selected ({checkedCount})
+            </button>
+          )}
+          {showDeleted && (
+            <button
+              className={styles.restoreButton}
+              disabled={checkedCount === 0}
+              onClick={() => setConfirmAction('restore')}
+              type="button"
+            >
+              Restore Selected ({checkedCount})
+            </button>
+          )}
+        </div>
+      )}
 
       <div ref={parentRef} className={styles.listContainer}>
         <div

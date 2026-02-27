@@ -11,6 +11,7 @@
     "start": "cd server && node index.mjs",
     "scrape": "cd scraper && node scrape.mjs",
     "convert-images": "bash scripts/convert-images-to-webp.sh",
+    "flag-hidden": "node scripts/flag-hidden-books.mjs",
     "lint": "eslint . --ext .js,.jsx,.mjs",
     "format": "prettier --write ."
   },

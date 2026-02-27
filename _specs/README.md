@@ -29,6 +29,8 @@ Specification documents for the Book Picker project. Read this index first to fi
 | [technical-book-card-redesign.md](technical-book-card-redesign.md) | technical | draft | Implementation plan for the book card redesign exploration page |
 | [feature-image-webp-conversion.md](feature-image-webp-conversion.md) | feature | draft | Convert scraped JPEG images to WebP to reduce storage and bandwidth |
 | [technical-image-webp-conversion.md](technical-image-webp-conversion.md) | technical | draft | Implementation plan for batch WebP conversion of book images |
+| [feature-hidden-books.md](feature-hidden-books.md) | feature | implemented | Hide books without interior images from student browsing |
+| [technical-hidden-books.md](technical-hidden-books.md) | technical | implemented | Implementation plan for the hidden books flag |
 
 ## Creating a New Spec
 

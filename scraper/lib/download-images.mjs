@@ -108,12 +108,18 @@ export function generateBooksJson(state) {
       }
     }
 
-    return {
+    const entry = {
       id: book.id,
       title: book.title,
       coverImage: `images/${book.id}/cover.webp`,
       interiorImages,
     };
+
+    if (interiorImages.length === 0) {
+      entry.hidden = true;
+    }
+
+    return entry;
   });
 
   const outputPath = join(DATA_DIR, 'books.json');
