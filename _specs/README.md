@@ -26,7 +26,9 @@ Specification documents for the Book Picker project. Read this index first to fi
 | [product-book-picker.md](product-book-picker.md) | product | active | Core product requirements, user flows, and UI/UX details |
 | [technical-book-picker.md](technical-book-picker.md) | technical | active | Tech stack, architecture, API contract, DB schema, implementation phases |
 | [feature-book-card-redesign.md](feature-book-card-redesign.md) | feature | draft | Redesign book cards to stop cropping covers, make books feel more real |
+| [technical-book-card-redesign.md](technical-book-card-redesign.md) | technical | draft | Implementation plan for the book card redesign exploration page |
 | [feature-image-webp-conversion.md](feature-image-webp-conversion.md) | feature | draft | Convert scraped JPEG images to WebP to reduce storage and bandwidth |
+| [technical-image-webp-conversion.md](technical-image-webp-conversion.md) | technical | draft | Implementation plan for batch WebP conversion of book images |
 
 ## Creating a New Spec
 

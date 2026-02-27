@@ -11,7 +11,7 @@ The two foundational specs that every agent should read before making implementa
 - `_specs/product-book-picker.md` — product requirements, user flows, and UI/UX details
 - `_specs/technical-book-picker.md` — tech stack, architecture, API contract, DB schema, implementation phases
 
-Feature specs (`feature-*.md`) are read as needed for the specific task at hand. New specs should follow `_specs/_template.md`.
+Feature specs (`feature-*.md`) are read as needed for the specific task at hand. When creating new spec documents, copy `_specs/_template.md` and follow its structure.
 
 ## Tech Stack
 
