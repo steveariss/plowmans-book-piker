@@ -1,6 +1,6 @@
 ---
 type: technical
-status: draft
+status: implemented
 created: 2026-02-27
 depends-on: feature-image-webp-conversion
 ---
@@ -147,13 +147,13 @@ echo "Space saved:     $((size_before - size_after)) MB"
 
 #### Full script behavior summary
 
-| Scenario | Behavior |
-|----------|----------|
-| `.jpg` exists, no `.webp` | Convert, verify, delete `.jpg` |
+| Scenario                              | Behavior                                               |
+| ------------------------------------- | ------------------------------------------------------ |
+| `.jpg` exists, no `.webp`             | Convert, verify, delete `.jpg`                         |
 | `.jpg` exists, `.webp` already exists | Skip conversion, delete `.jpg` if `.webp` is non-empty |
-| Only `.webp` exists (no `.jpg`) | Not found by `find`, no action |
-| `cwebp` fails on a file | Log error, increment `failed`, continue |
-| `.webp` created but empty (0 bytes) | Delete bad `.webp`, keep `.jpg`, increment `failed` |
+| Only `.webp` exists (no `.jpg`)       | Not found by `find`, no action                         |
+| `cwebp` fails on a file               | Log error, increment `failed`, continue                |
+| `.webp` created but empty (0 bytes)   | Delete bad `.webp`, keep `.jpg`, increment `failed`    |
 
 ---
 
@@ -196,6 +196,7 @@ function convertToWebp(jpgPath, webpPath) {
 ```
 
 `execFileSync` is used (not `exec`) because:
+
 - It's synchronous, matching the sequential download flow
 - It avoids shell injection (no shell is spawned)
 - Errors propagate naturally as exceptions
@@ -205,29 +206,29 @@ function convertToWebp(jpgPath, webpPath) {
 **Before (lines 43–50):**
 
 ```javascript
-      // Download cover image
-      const coverPath = join(bookDir, 'cover.jpg');
-      if (!existsSync(coverPath)) {
-        const url = coverUrl(book.id, book.coverImageCache);
-        await downloadImage(url, coverPath);
-        downloadedCount++;
-        await sleep(100);
-      }
+// Download cover image
+const coverPath = join(bookDir, 'cover.jpg');
+if (!existsSync(coverPath)) {
+  const url = coverUrl(book.id, book.coverImageCache);
+  await downloadImage(url, coverPath);
+  downloadedCount++;
+  await sleep(100);
+}
 ```
 
 **After:**
 
 ```javascript
-      // Download cover image
-      const coverPath = join(bookDir, 'cover.webp');
-      if (!existsSync(coverPath)) {
-        const tmpPath = join(bookDir, 'cover.jpg');
-        const url = coverUrl(book.id, book.coverImageCache);
-        await downloadImage(url, tmpPath);
-        convertToWebp(tmpPath, coverPath);
-        downloadedCount++;
-        await sleep(100);
-      }
+// Download cover image
+const coverPath = join(bookDir, 'cover.webp');
+if (!existsSync(coverPath)) {
+  const tmpPath = join(bookDir, 'cover.jpg');
+  const url = coverUrl(book.id, book.coverImageCache);
+  await downloadImage(url, tmpPath);
+  convertToWebp(tmpPath, coverPath);
+  downloadedCount++;
+  await sleep(100);
+}
 ```
 
 #### 4.2.3 Update `downloadAllImages` — interior pages
@@ -235,35 +236,35 @@ function convertToWebp(jpgPath, webpPath) {
 **Before (lines 53–62):**
 
 ```javascript
-      const interiors = book.interiorImages || [];
-      for (let p = 0; p < interiors.length; p++) {
-        const pagePath = join(bookDir, `page-${p + 1}.jpg`);
-        if (!existsSync(pagePath)) {
-          const img = interiors[p];
-          const url = interiorUrl(book.id, img.key, img.cb, img.b2b);
-          await downloadImage(url, pagePath);
-          downloadedCount++;
-          await sleep(100);
-        }
-      }
+const interiors = book.interiorImages || [];
+for (let p = 0; p < interiors.length; p++) {
+  const pagePath = join(bookDir, `page-${p + 1}.jpg`);
+  if (!existsSync(pagePath)) {
+    const img = interiors[p];
+    const url = interiorUrl(book.id, img.key, img.cb, img.b2b);
+    await downloadImage(url, pagePath);
+    downloadedCount++;
+    await sleep(100);
+  }
+}
 ```
 
 **After:**
 
 ```javascript
-      const interiors = book.interiorImages || [];
-      for (let p = 0; p < interiors.length; p++) {
-        const pagePath = join(bookDir, `page-${p + 1}.webp`);
-        if (!existsSync(pagePath)) {
-          const tmpPath = join(bookDir, `page-${p + 1}.jpg`);
-          const img = interiors[p];
-          const url = interiorUrl(book.id, img.key, img.cb, img.b2b);
-          await downloadImage(url, tmpPath);
-          convertToWebp(tmpPath, pagePath);
-          downloadedCount++;
-          await sleep(100);
-        }
-      }
+const interiors = book.interiorImages || [];
+for (let p = 0; p < interiors.length; p++) {
+  const pagePath = join(bookDir, `page-${p + 1}.webp`);
+  if (!existsSync(pagePath)) {
+    const tmpPath = join(bookDir, `page-${p + 1}.jpg`);
+    const img = interiors[p];
+    const url = interiorUrl(book.id, img.key, img.cb, img.b2b);
+    await downloadImage(url, tmpPath);
+    convertToWebp(tmpPath, pagePath);
+    downloadedCount++;
+    await sleep(100);
+  }
+}
 ```
 
 #### 4.2.4 Update `generateBooksJson` — output paths
@@ -271,45 +272,45 @@ function convertToWebp(jpgPath, webpPath) {
 **Before (lines 89–105):**
 
 ```javascript
-  const output = books.map((book) => {
-    const interiorImages = [];
-    const interiors = book.interiorImages || [];
-    for (let i = 0; i < interiors.length; i++) {
-      const pagePath = join(IMAGES_DIR, book.id, `page-${i + 1}.jpg`);
-      if (existsSync(pagePath)) {
-        interiorImages.push(`images/${book.id}/page-${i + 1}.jpg`);
-      }
+const output = books.map((book) => {
+  const interiorImages = [];
+  const interiors = book.interiorImages || [];
+  for (let i = 0; i < interiors.length; i++) {
+    const pagePath = join(IMAGES_DIR, book.id, `page-${i + 1}.jpg`);
+    if (existsSync(pagePath)) {
+      interiorImages.push(`images/${book.id}/page-${i + 1}.jpg`);
     }
+  }
 
-    return {
-      id: book.id,
-      title: book.title,
-      coverImage: `images/${book.id}/cover.jpg`,
-      interiorImages,
-    };
-  });
+  return {
+    id: book.id,
+    title: book.title,
+    coverImage: `images/${book.id}/cover.jpg`,
+    interiorImages,
+  };
+});
 ```
 
 **After:**
 
 ```javascript
-  const output = books.map((book) => {
-    const interiorImages = [];
-    const interiors = book.interiorImages || [];
-    for (let i = 0; i < interiors.length; i++) {
-      const pagePath = join(IMAGES_DIR, book.id, `page-${i + 1}.webp`);
-      if (existsSync(pagePath)) {
-        interiorImages.push(`images/${book.id}/page-${i + 1}.webp`);
-      }
+const output = books.map((book) => {
+  const interiorImages = [];
+  const interiors = book.interiorImages || [];
+  for (let i = 0; i < interiors.length; i++) {
+    const pagePath = join(IMAGES_DIR, book.id, `page-${i + 1}.webp`);
+    if (existsSync(pagePath)) {
+      interiorImages.push(`images/${book.id}/page-${i + 1}.webp`);
     }
+  }
 
-    return {
-      id: book.id,
-      title: book.title,
-      coverImage: `images/${book.id}/cover.webp`,
-      interiorImages,
-    };
-  });
+  return {
+    id: book.id,
+    title: book.title,
+    coverImage: `images/${book.id}/cover.webp`,
+    interiorImages,
+  };
+});
 ```
 
 ---
@@ -355,15 +356,15 @@ Add the `convert-images` script:
 
 ## 5. Impact on Existing Code
 
-| File / Area | Current | Change Needed |
-|-------------|---------|---------------|
-| `scraper/lib/download-images.mjs` | Saves `.jpg`, outputs `.jpg` paths in `books.json` | Save as `.webp` (download JPEG → convert → delete JPEG), output `.webp` paths |
-| `data/books.json` | All paths end in `.jpg` | Updated by conversion script (`sed` replaces `.jpg` → `.webp`) |
-| `package.json` | No conversion script | Add `convert-images` script entry |
-| `server/index.mjs` | `express.static` serves `data/images/` | **No changes** — extension-agnostic |
-| `client/src/components/BookCard.jsx` | Renders `src={/${book.coverImage}}` | **No changes** — reads path from API |
-| `client/src/components/BookCarousel.jsx` | Renders `src={/${src}}` | **No changes** — reads path from API |
-| `data/books-sample.json` | Uses `.png` extensions for mock images | **No changes** — sample data uses PNG placeholders from `scripts/generate-placeholders.mjs`, unrelated to production images |
+| File / Area                              | Current                                            | Change Needed                                                                                                               |
+| ---------------------------------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `scraper/lib/download-images.mjs`        | Saves `.jpg`, outputs `.jpg` paths in `books.json` | Save as `.webp` (download JPEG → convert → delete JPEG), output `.webp` paths                                               |
+| `data/books.json`                        | All paths end in `.jpg`                            | Updated by conversion script (`sed` replaces `.jpg` → `.webp`)                                                              |
+| `package.json`                           | No conversion script                               | Add `convert-images` script entry                                                                                           |
+| `server/index.mjs`                       | `express.static` serves `data/images/`             | **No changes** — extension-agnostic                                                                                         |
+| `client/src/components/BookCard.jsx`     | Renders `src={/${book.coverImage}}`                | **No changes** — reads path from API                                                                                        |
+| `client/src/components/BookCarousel.jsx` | Renders `src={/${src}}`                            | **No changes** — reads path from API                                                                                        |
+| `data/books-sample.json`                 | Uses `.png` extensions for mock images             | **No changes** — sample data uses PNG placeholders from `scripts/generate-placeholders.mjs`, unrelated to production images |
 
 ---
 
@@ -379,13 +380,13 @@ Add the `convert-images` script:
 
 ## 7. Implementation Order
 
-| Step | Task | Files | Commit Point |
-|------|------|-------|--------------|
-| 1 | Create the batch conversion shell script | `scripts/convert-images-to-webp.sh` | Yes |
-| 2 | Add `convert-images` script to root package.json | `package.json` | Same commit as step 1 |
-| 3 | Run `npm run convert-images` to convert all existing images | `data/images/**/*.webp`, `data/books.json` | No (data dir is gitignored) |
-| 4 | Update scraper to download-then-convert to WebP | `scraper/lib/download-images.mjs` | Yes |
-| 5 | Add technical spec to spec index | `_specs/README.md` | Same commit as step 4 |
+| Step | Task                                                        | Files                                      | Commit Point                |
+| ---- | ----------------------------------------------------------- | ------------------------------------------ | --------------------------- |
+| 1    | Create the batch conversion shell script                    | `scripts/convert-images-to-webp.sh`        | Yes                         |
+| 2    | Add `convert-images` script to root package.json            | `package.json`                             | Same commit as step 1       |
+| 3    | Run `npm run convert-images` to convert all existing images | `data/images/**/*.webp`, `data/books.json` | No (data dir is gitignored) |
+| 4    | Update scraper to download-then-convert to WebP             | `scraper/lib/download-images.mjs`          | Yes                         |
+| 5    | Add technical spec to spec index                            | `_specs/README.md`                         | Same commit as step 4       |
 
 ---
 
@@ -403,52 +404,63 @@ Add the `convert-images` script:
 ## 9. Verification Steps
 
 1. **Install prerequisite:**
+
    ```bash
    brew install webp
    cwebp -version  # confirm it's available
    ```
 
 2. **Check current state:**
+
    ```bash
    du -sh data/images/          # note size before (~2.8 GB)
    find data/images -name "*.jpg" | wc -l  # note count (~23,741)
    ```
 
 3. **Run the conversion:**
+
    ```bash
    npm run convert-images
    ```
+
    Confirm progress output appears every 500 files and a summary prints at the end.
 
 4. **Verify no JPEGs remain:**
+
    ```bash
    find data/images -name "*.jpg" | wc -l  # should be 0
    find data/images -name "*.webp" | wc -l # should be ~23,741
    ```
 
 5. **Verify books.json was updated:**
+
    ```bash
    grep -c '\.jpg"' data/books.json   # should be 0
    grep -c '\.webp"' data/books.json  # should be > 0
    ```
 
 6. **Verify size reduction:**
+
    ```bash
    du -sh data/images/  # should be under 1 GB
    ```
 
 7. **Test the app:**
+
    ```bash
    npm run dev
    ```
+
    - Navigate to `http://localhost:5173/browse` — confirm book covers load
    - Click a book to open the carousel — confirm interior pages load
    - Open browser DevTools Network tab — confirm image requests are `.webp` and return `200`
 
 8. **Test idempotency:**
+
    ```bash
    npm run convert-images  # re-run
    ```
+
    Should print "No .jpg files found" and exit immediately.
 
 9. **Test scraper changes** (optional, only if re-scraping):

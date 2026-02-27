@@ -4,33 +4,33 @@ Specification documents for the Book Picker project. Read this index first to fi
 
 ## Naming Convention
 
-| Prefix | Purpose | Example |
-|--------|---------|---------|
-| `product-*` | High-level product specs (what and why) | `product-book-picker.md` |
-| `technical-*` | Architecture and implementation (how) | `technical-book-picker.md` |
-| `feature-*` | Individual feature explorations | `feature-book-card-redesign.md` |
+| Prefix        | Purpose                                 | Example                         |
+| ------------- | --------------------------------------- | ------------------------------- |
+| `product-*`   | High-level product specs (what and why) | `product-book-picker.md`        |
+| `technical-*` | Architecture and implementation (how)   | `technical-book-picker.md`      |
+| `feature-*`   | Individual feature explorations         | `feature-book-card-redesign.md` |
 
 ## Status Key
 
-| Status | Meaning |
-|--------|---------|
-| `draft` | Being written, not ready for implementation |
-| `active` | Approved and ready for (or in) implementation |
-| `implemented` | Fully built and shipped |
-| `deprecated` | No longer relevant, kept for reference |
+| Status        | Meaning                                       |
+| ------------- | --------------------------------------------- |
+| `draft`       | Being written, not ready for implementation   |
+| `active`      | Approved and ready for (or in) implementation |
+| `implemented` | Fully built and shipped                       |
+| `deprecated`  | No longer relevant, kept for reference        |
 
 ## Spec Index
 
-| File | Type | Status | Description |
-|------|------|--------|-------------|
-| [product-book-picker.md](product-book-picker.md) | product | active | Core product requirements, user flows, and UI/UX details |
-| [technical-book-picker.md](technical-book-picker.md) | technical | active | Tech stack, architecture, API contract, DB schema, implementation phases |
-| [feature-book-card-redesign.md](feature-book-card-redesign.md) | feature | draft | Redesign book cards to stop cropping covers, make books feel more real |
-| [technical-book-card-redesign.md](technical-book-card-redesign.md) | technical | draft | Implementation plan for the book card redesign exploration page |
-| [feature-image-webp-conversion.md](feature-image-webp-conversion.md) | feature | draft | Convert scraped JPEG images to WebP to reduce storage and bandwidth |
-| [technical-image-webp-conversion.md](technical-image-webp-conversion.md) | technical | draft | Implementation plan for batch WebP conversion of book images |
-| [feature-hidden-books.md](feature-hidden-books.md) | feature | implemented | Hide books without interior images from student browsing |
-| [technical-hidden-books.md](technical-hidden-books.md) | technical | implemented | Implementation plan for the hidden books flag |
+| File                                                                     | Type      | Status      | Description                                                              |
+| ------------------------------------------------------------------------ | --------- | ----------- | ------------------------------------------------------------------------ |
+| [product-book-picker.md](product-book-picker.md)                         | product   | active      | Core product requirements, user flows, and UI/UX details                 |
+| [technical-book-picker.md](technical-book-picker.md)                     | technical | active      | Tech stack, architecture, API contract, DB schema, implementation phases |
+| [feature-book-card-redesign.md](feature-book-card-redesign.md)           | feature   | draft       | Redesign book cards to stop cropping covers, make books feel more real   |
+| [technical-book-card-redesign.md](technical-book-card-redesign.md)       | technical | draft       | Implementation plan for the book card redesign exploration page          |
+| [feature-image-webp-conversion.md](feature-image-webp-conversion.md)     | feature   | implemented | Convert scraped JPEG images to WebP to reduce storage and bandwidth      |
+| [technical-image-webp-conversion.md](technical-image-webp-conversion.md) | technical | implemented | Implementation plan for batch WebP conversion of book images             |
+| [feature-hidden-books.md](feature-hidden-books.md)                       | feature   | implemented | Hide books without interior images from student browsing                 |
+| [technical-hidden-books.md](technical-hidden-books.md)                   | technical | implemented | Implementation plan for the hidden books flag                            |
 
 ## Creating a New Spec
 

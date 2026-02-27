@@ -1,6 +1,6 @@
 ---
 type: feature
-status: draft
+status: implemented
 created: 2026-02-27
 ---
 
@@ -98,12 +98,12 @@ After the images are converted, the rest of the codebase needs to reference `.we
 
 ## 6. Expected Results
 
-| Metric | Before | After (estimated) |
-|--------|--------|--------------------|
-| Format | JPEG | WebP |
-| Quality | Original (varies) | 65 |
-| Total size | ~3 GB | ~600 MB - 1 GB |
-| File count | Same | Same (1:1 replacement) |
-| Browser support | Universal | All modern browsers (Chrome, Firefox, Safari 14+, Edge) |
+| Metric          | Before            | After (estimated)                                       |
+| --------------- | ----------------- | ------------------------------------------------------- |
+| Format          | JPEG              | WebP                                                    |
+| Quality         | Original (varies) | 65                                                      |
+| Total size      | ~3 GB             | ~600 MB - 1 GB                                          |
+| File count      | Same              | Same (1:1 replacement)                                  |
+| Browser support | Universal         | All modern browsers (Chrome, Firefox, Safari 14+, Edge) |
 
 WebP at quality 65 provides a good balance between file size reduction and visual quality. For book cover thumbnails and interior page previews on a Chromebook screen, the difference from the original JPEGs will be imperceptible.

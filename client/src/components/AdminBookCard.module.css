@@ -8,7 +8,7 @@
   cursor: pointer;
   transition: background 0.15s;
   user-select: none;
-  height: 80px;
+  height: auto;
 }
 
 .card:hover {
@@ -28,8 +28,8 @@
 }
 
 .cover {
-  width: 48px;
-  height: 64px;
+  width: auto;
+  height: 120px;
   object-fit: cover;
   border-radius: 6px;
   flex-shrink: 0;
@@ -38,7 +38,7 @@
 
 .title {
   flex: 1;
-  font-size: 14px;
+  font-size: 18px;
   font-weight: 600;
   color: var(--color-text);
   overflow: hidden;
@@ -50,7 +50,7 @@
   font-size: 12px;
   font-weight: 700;
   color: var(--color-danger);
-  background: #FFEBEE;
+  background: #ffebee;
   padding: 2px 8px;
   border-radius: 8px;
   flex-shrink: 0;

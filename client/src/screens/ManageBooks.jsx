@@ -10,7 +10,12 @@ import styles from './ManageBooks.module.css';
 export default function ManageBooks() {
   const navigate = useNavigate();
   const [books, setBooks] = useState([]);
-  const [stats, setStats] = useState({ totalActive: 0, totalDeleted: 0, totalHidden: 0, totalAll: 0 });
+  const [stats, setStats] = useState({
+    totalActive: 0,
+    totalDeleted: 0,
+    totalHidden: 0,
+    totalAll: 0,
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [checkedIds, setCheckedIds] = useState(new Set());
@@ -50,7 +55,7 @@ export default function ManageBooks() {
   const virtualizer = useVirtualizer({
     count: filteredBooks.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 88,
+    estimateSize: () => 160,
     overscan: 10,
   });
 
@@ -157,7 +162,9 @@ export default function ManageBooks() {
       <div className={styles.statusBar}>
         <span>{checkedCount} selected</span>
         <span>{'\u00B7'}</span>
-        <span>{stats.totalActive} active of {stats.totalAll} total ({stats.totalHidden} hidden)</span>
+        <span>
+          {stats.totalActive} active of {stats.totalAll} total ({stats.totalHidden} hidden)
+        </span>
         <span>{'\u00B7'}</span>
         <span>Showing {filteredBooks.length}</span>
       </div>
