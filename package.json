@@ -10,6 +10,7 @@
     "build": "cd client && npx vite build",
     "start": "cd server && node index.mjs",
     "scrape": "cd scraper && node scrape.mjs",
+    "convert-images": "bash scripts/convert-images-to-webp.sh",
     "lint": "eslint . --ext .js,.jsx,.mjs",
     "format": "prettier --write ."
   },
