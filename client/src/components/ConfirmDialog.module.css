@@ -1,0 +1,70 @@
+.dialog {
+  border: none;
+  padding: 0;
+  background: transparent;
+  max-width: 400px;
+  width: 90vw;
+}
+
+.dialog::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.content {
+  background: white;
+  border-radius: var(--card-border-radius);
+  padding: var(--spacing-xl);
+  text-align: center;
+}
+
+.message {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-lg);
+  line-height: 1.4;
+}
+
+.actions {
+  display: flex;
+  gap: var(--spacing-md);
+  justify-content: center;
+}
+
+.cancelButton,
+.confirmButton {
+  height: var(--button-height);
+  padding: 0 var(--spacing-xl);
+  border-radius: var(--card-border-radius);
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  min-width: 120px;
+}
+
+.cancelButton {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
+.cancelButton:hover {
+  background: var(--color-border);
+}
+
+.confirmButton {
+  background: var(--color-secondary);
+  color: white;
+}
+
+.confirmButton:hover {
+  background: var(--color-secondary-hover);
+}
+
+.danger {
+  background: var(--color-danger);
+}
+
+.danger:hover {
+  background: var(--color-danger-hover);
+}

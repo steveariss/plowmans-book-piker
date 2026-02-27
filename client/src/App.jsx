@@ -2,15 +2,8 @@ import { Routes, Route } from 'react-router-dom';
 import TeacherSetup from './screens/TeacherSetup.jsx';
 import BookBrowsing from './screens/BookBrowsing.jsx';
 import ThankYou from './screens/ThankYou.jsx';
-
-function Placeholder({ name }) {
-  return (
-    <div style={{ padding: '2rem', textAlign: 'center' }}>
-      <h1>{name}</h1>
-      <p>Coming soon...</p>
-    </div>
-  );
-}
+import ManageBooks from './screens/ManageBooks.jsx';
+import Report from './screens/Report.jsx';
 
 export default function App() {
   return (
@@ -18,8 +11,8 @@ export default function App() {
       <Route path="/" element={<TeacherSetup />} />
       <Route path="/browse" element={<BookBrowsing />} />
       <Route path="/thanks" element={<ThankYou />} />
-      <Route path="/admin/books" element={<Placeholder name="Manage Books" />} />
-      <Route path="/admin/report" element={<Placeholder name="Report" />} />
+      <Route path="/admin/books" element={<ManageBooks />} />
+      <Route path="/admin/report" element={<Report />} />
     </Routes>
   );
 }

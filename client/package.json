@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tanstack/react-virtual": "^3.13.19",
     "canvas-confetti": "^1.9.0",
     "embla-carousel-react": "^8.6.0",
     "react": "^19.0.0",

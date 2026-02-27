@@ -1,0 +1,46 @@
+.wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  background: white;
+  border: 2px solid var(--color-border);
+  border-radius: var(--card-border-radius);
+  padding: 0 var(--spacing-md);
+  height: var(--button-height);
+  transition: border-color 0.2s;
+}
+
+.wrapper:focus-within {
+  border-color: var(--color-secondary);
+}
+
+.icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.input {
+  flex: 1;
+  border: none;
+  outline: none;
+  font-size: 16px;
+  background: transparent;
+}
+
+.clear {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: var(--color-bg);
+  border-radius: 50%;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--color-text-light);
+}
+
+.clear:hover {
+  background: var(--color-border);
+}
