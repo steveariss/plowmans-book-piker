@@ -24,12 +24,26 @@
       "WebFetch(domain:bookmanager.com)",
       "WebFetch(domain:registry.npmjs.org)",
       "Bash(git -C /Users/steveariss/Sites/personal/ai/book-picker status)",
-      "Bash(git -C /Users/steveariss/Sites/personal/ai/book-picker diff --stat)"
+      "Bash(git -C /Users/steveariss/Sites/personal/ai/book-picker diff --stat)",
+      "Bash(python3:*)",
+      "WebFetch(domain:api2.bookmanager.com)",
+      "WebFetch(domain:api.bookmanager.com)",
+      "WebFetch(domain:www.live.bookmanager.com)",
+      "Bash(git mv:*)",
+      "mcp__figma-desktop__get_metadata",
+      "mcp__plugin_figma_figma__generate_figma_design",
+      "Bash(lsof:*)",
+      "Bash(open:*)",
+      "Bash(osascript:*)"
     ],
     "deny": [
       "Bash(git push:*)",
       "Bash(git reset --hard:*)",
       "Bash(rm -rf:*)"
+    ],
+    "additionalDirectories": [
+      "/Users/steveariss/Sites/personal/ai/book-picker/data",
+      "/Users/steveariss/Sites/personal/ai/book-picker/_specs"
     ]
   }
 }
