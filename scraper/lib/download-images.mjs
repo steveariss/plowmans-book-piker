@@ -1,0 +1,110 @@
+import { writeFileSync, mkdirSync, existsSync } from 'fs';
+import { join, dirname } from 'path';
+import { fileURLToPath } from 'url';
+import { logProgress, saveState } from './progress.mjs';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const DATA_DIR = join(__dirname, '..', '..', 'data');
+const IMAGES_DIR = join(DATA_DIR, 'images');
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function downloadImage(url, destPath) {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`HTTP ${response.status} for ${url}`);
+  }
+  const buffer = Buffer.from(await response.arrayBuffer());
+  mkdirSync(dirname(destPath), { recursive: true });
+  writeFileSync(destPath, buffer);
+}
+
+export async function downloadAllImages(state) {
+  const books = state.bookList;
+  const needsDownload = books.filter((b) => !state.imagesDownloaded.has(b.id));
+
+  if (needsDownload.length === 0) {
+    logProgress(4, 'All images already downloaded, skipping.');
+    return;
+  }
+
+  const totalImages = books.reduce(
+    (count, b) => count + 1 + (b.interiorImageUrls?.length || 0),
+    0,
+  );
+  let downloadedCount = 0;
+
+  logProgress(4, `Downloading images for ${needsDownload.length} books (~${totalImages} images total)...`);
+
+  for (let i = 0; i < needsDownload.length; i++) {
+    const book = needsDownload[i];
+    const bookDir = join(IMAGES_DIR, book.id);
+    mkdirSync(bookDir, { recursive: true });
+
+    try {
+      // Download cover image
+      if (book.coverImageUrl) {
+        const coverPath = join(bookDir, 'cover.jpg');
+        if (!existsSync(coverPath)) {
+          await downloadImage(book.coverImageUrl, coverPath);
+          downloadedCount++;
+          await sleep(100);
+        }
+      }
+
+      // Download interior images
+      if (book.interiorImageUrls) {
+        for (let p = 0; p < book.interiorImageUrls.length; p++) {
+          const pagePath = join(bookDir, `page-${p + 1}.jpg`);
+          if (!existsSync(pagePath)) {
+            await downloadImage(book.interiorImageUrls[p], pagePath);
+            downloadedCount++;
+            await sleep(100);
+          }
+        }
+      }
+
+      state.imagesDownloaded.add(book.id);
+
+      if ((i + 1) % 25 === 0 || i === needsDownload.length - 1) {
+        logProgress(4, `Downloading images... ${i + 1} / ${needsDownload.length} books (${downloadedCount} images downloaded)`);
+        saveState(state);
+      }
+
+    } catch (err) {
+      logProgress(4, `Error downloading images for ${book.id}: ${err.message}`);
+    }
+  }
+
+  saveState(state);
+  logProgress(4, `Image download complete: ${downloadedCount} images downloaded.`);
+}
+
+export function generateBooksJson(state) {
+  const books = state.bookList;
+
+  const output = books.map((book) => {
+    const interiorImages = [];
+    if (book.interiorImageUrls) {
+      for (let i = 0; i < book.interiorImageUrls.length; i++) {
+        const pagePath = join(IMAGES_DIR, book.id, `page-${i + 1}.jpg`);
+        if (existsSync(pagePath)) {
+          interiorImages.push(`images/${book.id}/page-${i + 1}.jpg`);
+        }
+      }
+    }
+
+    return {
+      id: book.id,
+      title: book.title,
+      coverImage: `images/${book.id}/cover.jpg`,
+      interiorImages,
+    };
+  });
+
+  const outputPath = join(DATA_DIR, 'books.json');
+  writeFileSync(outputPath, JSON.stringify(output, null, 2));
+  logProgress(4, `Generated books.json with ${output.length} books at ${outputPath}`);
+}
