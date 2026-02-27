@@ -1,13 +1,23 @@
 .container {
   padding: var(--spacing-lg);
-  max-width: 1200px;
-  margin: 0 auto;
 }
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(6, 1fr);
   gap: var(--spacing-lg);
+}
+
+@media (max-width: 1200px) {
+  .grid {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 .loading {

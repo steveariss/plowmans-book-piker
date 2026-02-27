@@ -4,6 +4,7 @@
   background: transparent;
   max-width: 400px;
   width: 90vw;
+  margin: auto;
 }
 
 .dialog::backdrop {

@@ -6,6 +6,7 @@
   width: 90vw;
   max-height: none;
   overflow: visible;
+  margin: auto;
 }
 
 .dialog::backdrop {

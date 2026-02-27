@@ -4,7 +4,6 @@
   background: var(--color-card);
   border-radius: var(--card-border-radius);
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
@@ -21,6 +20,8 @@
   background: #f0f0f0;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  border-radius: var(--card-border-radius) var(--card-border-radius) 0 0;
+  overflow: hidden;
 }
 
 .cover {
