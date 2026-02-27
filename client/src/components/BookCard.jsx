@@ -20,11 +20,13 @@ export default function BookCard({ book, picked, onPick, onPreview, shake }) {
       <div className={styles.info}>
         <h3 className={styles.title}>{book.title}</h3>
       </div>
-      <PickButton
-        picked={picked}
-        shake={shake}
-        onClick={() => onPick(book.id)}
-      />
+      <div className={styles.pickWrapper}>
+        <PickButton
+          picked={picked}
+          shake={shake}
+          onClick={() => onPick(book.id)}
+        />
+      </div>
     </div>
   );
 }
