@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useBooks } from '../hooks/useBooks.js';
 import { useSelections } from '../hooks/useSelections.js';
 import { saveSelections } from '../api/client.mjs';
 import BookCard from '../components/BookCard.jsx';
+import BookCarousel from '../components/BookCarousel.jsx';
 import SelectionCounter from '../components/SelectionCounter.jsx';
 import DoneButton from '../components/DoneButton.jsx';
 import styles from './BookBrowsing.module.css';
@@ -11,6 +13,7 @@ export default function BookBrowsing() {
   const location = useLocation();
   const navigate = useNavigate();
   const studentName = location.state?.studentName || 'Student';
+  const [previewBook, setPreviewBook] = useState(null);
 
   const { books, isLoading, error } = useBooks();
   const { selectedIds, toggleSelection, isComplete, selectedBooks, shakeId } =
@@ -23,8 +26,7 @@ export default function BookBrowsing() {
   }
 
   function handlePreview(book) {
-    // Carousel implementation in Phase 4
-    // For now, this is a no-op
+    setPreviewBook(book);
   }
 
   if (isLoading) {
@@ -65,6 +67,16 @@ export default function BookBrowsing() {
 
       {/* Spacer so last row isn't hidden behind DoneButton */}
       {isComplete && <div style={{ height: 120 }} />}
+
+      {previewBook && (
+        <BookCarousel
+          book={previewBook}
+          picked={selectedIds.has(previewBook.id)}
+          shake={shakeId === previewBook.id}
+          onPick={toggleSelection}
+          onClose={() => setPreviewBook(null)}
+        />
+      )}
     </div>
   );
 }
