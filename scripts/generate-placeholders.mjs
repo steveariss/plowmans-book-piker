@@ -105,11 +105,11 @@ for (let i = 0; i < books.length; i++) {
 
   const [r, g, b] = coverColors[i % coverColors.length];
   const coverPng = createPNG(300, 400, r, g, b);
-  writeFileSync(join(bookDir, 'cover.jpg'), coverPng);
+  writeFileSync(join(bookDir, 'cover.png'), coverPng);
 
   for (let p = 0; p < book.interiorImages.length; p++) {
     const pagePng = createPNG(400, 300, ...interiorColor);
-    writeFileSync(join(bookDir, `page-${p + 1}.jpg`), pagePng);
+    writeFileSync(join(bookDir, `page-${p + 1}.png`), pagePng);
   }
 }
 
