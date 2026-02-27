@@ -1,6 +1,7 @@
-import { writeFileSync, mkdirSync, existsSync } from 'fs';
+import { writeFileSync, mkdirSync, existsSync, unlinkSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { execFileSync } from 'child_process';
 import { coverUrl, interiorUrl } from './api.mjs';
 import { logProgress, saveState } from './progress.mjs';
 
@@ -22,6 +23,13 @@ async function downloadImage(url, destPath) {
   writeFileSync(destPath, buffer);
 }
 
+function convertToWebp(jpgPath, webpPath) {
+  execFileSync('cwebp', ['-q', '65', jpgPath, '-o', webpPath], {
+    stdio: 'ignore',
+  });
+  unlinkSync(jpgPath);
+}
+
 export async function downloadAllImages(state) {
   const books = state.bookList;
   const needsDownload = books.filter((b) => !state.imagesDownloaded.has(b.id));
@@ -41,10 +49,12 @@ export async function downloadAllImages(state) {
 
     try {
       // Download cover image
-      const coverPath = join(bookDir, 'cover.jpg');
+      const coverPath = join(bookDir, 'cover.webp');
       if (!existsSync(coverPath)) {
+        const tmpPath = join(bookDir, 'cover.jpg');
         const url = coverUrl(book.id, book.coverImageCache);
-        await downloadImage(url, coverPath);
+        await downloadImage(url, tmpPath);
+        convertToWebp(tmpPath, coverPath);
         downloadedCount++;
         await sleep(100);
       }
@@ -52,11 +62,13 @@ export async function downloadAllImages(state) {
       // Download interior images (if detail phase populated them)
       const interiors = book.interiorImages || [];
       for (let p = 0; p < interiors.length; p++) {
-        const pagePath = join(bookDir, `page-${p + 1}.jpg`);
+        const pagePath = join(bookDir, `page-${p + 1}.webp`);
         if (!existsSync(pagePath)) {
+          const tmpPath = join(bookDir, `page-${p + 1}.jpg`);
           const img = interiors[p];
           const url = interiorUrl(book.id, img.key, img.cb, img.b2b);
-          await downloadImage(url, pagePath);
+          await downloadImage(url, tmpPath);
+          convertToWebp(tmpPath, pagePath);
           downloadedCount++;
           await sleep(100);
         }
@@ -90,16 +102,16 @@ export function generateBooksJson(state) {
     const interiorImages = [];
     const interiors = book.interiorImages || [];
     for (let i = 0; i < interiors.length; i++) {
-      const pagePath = join(IMAGES_DIR, book.id, `page-${i + 1}.jpg`);
+      const pagePath = join(IMAGES_DIR, book.id, `page-${i + 1}.webp`);
       if (existsSync(pagePath)) {
-        interiorImages.push(`images/${book.id}/page-${i + 1}.jpg`);
+        interiorImages.push(`images/${book.id}/page-${i + 1}.webp`);
       }
     }
 
     return {
       id: book.id,
       title: book.title,
-      coverImage: `images/${book.id}/cover.jpg`,
+      coverImage: `images/${book.id}/cover.webp`,
       interiorImages,
     };
   });
