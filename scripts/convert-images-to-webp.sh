@@ -16,9 +16,8 @@ BOOKS_JSON="$PROJECT_ROOT/data/books.json"
 # Capture size before conversion
 size_before=$(du -sm "$IMAGES_DIR" | cut -f1)
 
-# Build file list
-mapfile -t jpg_files < <(find "$IMAGES_DIR" -name "*.jpg" -type f)
-total=${#jpg_files[@]}
+# Count files first
+total=$(find "$IMAGES_DIR" -name "*.jpg" -type f | wc -l | tr -d ' ')
 
 if [ "$total" -eq 0 ]; then
   echo "No .jpg files found in $IMAGES_DIR. Nothing to convert."
@@ -30,10 +29,11 @@ echo "Found $total .jpg files to process."
 converted=0
 skipped=0
 failed=0
+count=0
 
-for i in "${!jpg_files[@]}"; do
-  jpg="${jpg_files[$i]}"
+while IFS= read -r -d '' jpg; do
   webp="${jpg%.jpg}.webp"
+  count=$((count + 1))
 
   # Skip if .webp already exists
   if [ -f "$webp" ]; then
@@ -41,6 +41,10 @@ for i in "${!jpg_files[@]}"; do
     # Delete leftover .jpg if .webp exists and is non-empty
     if [ -s "$webp" ]; then
       rm -f "$jpg"
+    fi
+    # Progress every 500 files
+    if [ $((count % 500)) -eq 0 ] || [ "$count" -eq "$total" ]; then
+      echo "Progress: $count / $total (converted: $converted, skipped: $skipped, failed: $failed)"
     fi
     continue
   fi
@@ -62,11 +66,10 @@ for i in "${!jpg_files[@]}"; do
   fi
 
   # Progress every 500 files
-  count=$((i + 1))
   if [ $((count % 500)) -eq 0 ] || [ "$count" -eq "$total" ]; then
     echo "Progress: $count / $total (converted: $converted, skipped: $skipped, failed: $failed)"
   fi
-done
+done < <(find "$IMAGES_DIR" -name "*.jpg" -type f -print0)
 
 # Update books.json: replace .jpg with .webp in image paths
 if [ -f "$BOOKS_JSON" ]; then
