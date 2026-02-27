@@ -1,0 +1,122 @@
+[
+  {
+    "id": "mock-001",
+    "title": "The Very Hungry Caterpillar",
+    "coverImage": "images/mock-001/cover.jpg",
+    "interiorImages": ["images/mock-001/page-1.jpg", "images/mock-001/page-2.jpg"]
+  },
+  {
+    "id": "mock-002",
+    "title": "Where the Wild Things Are",
+    "coverImage": "images/mock-002/cover.jpg",
+    "interiorImages": ["images/mock-002/page-1.jpg", "images/mock-002/page-2.jpg"]
+  },
+  {
+    "id": "mock-003",
+    "title": "Goodnight Moon",
+    "coverImage": "images/mock-003/cover.jpg",
+    "interiorImages": ["images/mock-003/page-1.jpg"]
+  },
+  {
+    "id": "mock-004",
+    "title": "The Cat in the Hat",
+    "coverImage": "images/mock-004/cover.jpg",
+    "interiorImages": ["images/mock-004/page-1.jpg", "images/mock-004/page-2.jpg"]
+  },
+  {
+    "id": "mock-005",
+    "title": "Green Eggs and Ham",
+    "coverImage": "images/mock-005/cover.jpg",
+    "interiorImages": ["images/mock-005/page-1.jpg"]
+  },
+  {
+    "id": "mock-006",
+    "title": "Brown Bear, Brown Bear, What Do You See?",
+    "coverImage": "images/mock-006/cover.jpg",
+    "interiorImages": ["images/mock-006/page-1.jpg", "images/mock-006/page-2.jpg"]
+  },
+  {
+    "id": "mock-007",
+    "title": "Chicka Chicka Boom Boom",
+    "coverImage": "images/mock-007/cover.jpg",
+    "interiorImages": ["images/mock-007/page-1.jpg"]
+  },
+  {
+    "id": "mock-008",
+    "title": "The Giving Tree",
+    "coverImage": "images/mock-008/cover.jpg",
+    "interiorImages": ["images/mock-008/page-1.jpg", "images/mock-008/page-2.jpg"]
+  },
+  {
+    "id": "mock-009",
+    "title": "If You Give a Mouse a Cookie",
+    "coverImage": "images/mock-009/cover.jpg",
+    "interiorImages": ["images/mock-009/page-1.jpg"]
+  },
+  {
+    "id": "mock-010",
+    "title": "Corduroy",
+    "coverImage": "images/mock-010/cover.jpg",
+    "interiorImages": ["images/mock-010/page-1.jpg", "images/mock-010/page-2.jpg"]
+  },
+  {
+    "id": "mock-011",
+    "title": "Stellaluna",
+    "coverImage": "images/mock-011/cover.jpg",
+    "interiorImages": ["images/mock-011/page-1.jpg"]
+  },
+  {
+    "id": "mock-012",
+    "title": "The Rainbow Fish",
+    "coverImage": "images/mock-012/cover.jpg",
+    "interiorImages": ["images/mock-012/page-1.jpg", "images/mock-012/page-2.jpg"]
+  },
+  {
+    "id": "mock-013",
+    "title": "Guess How Much I Love You",
+    "coverImage": "images/mock-013/cover.jpg",
+    "interiorImages": ["images/mock-013/page-1.jpg"]
+  },
+  {
+    "id": "mock-014",
+    "title": "The Snowy Day",
+    "coverImage": "images/mock-014/cover.jpg",
+    "interiorImages": ["images/mock-014/page-1.jpg", "images/mock-014/page-2.jpg"]
+  },
+  {
+    "id": "mock-015",
+    "title": "Caps for Sale",
+    "coverImage": "images/mock-015/cover.jpg",
+    "interiorImages": ["images/mock-015/page-1.jpg"]
+  },
+  {
+    "id": "mock-016",
+    "title": "Harold and the Purple Crayon",
+    "coverImage": "images/mock-016/cover.jpg",
+    "interiorImages": ["images/mock-016/page-1.jpg", "images/mock-016/page-2.jpg"]
+  },
+  {
+    "id": "mock-017",
+    "title": "Owl Moon",
+    "coverImage": "images/mock-017/cover.jpg",
+    "interiorImages": ["images/mock-017/page-1.jpg"]
+  },
+  {
+    "id": "mock-018",
+    "title": "Whistle for Willie",
+    "coverImage": "images/mock-018/cover.jpg",
+    "interiorImages": ["images/mock-018/page-1.jpg", "images/mock-018/page-2.jpg"]
+  },
+  {
+    "id": "mock-019",
+    "title": "Make Way for Ducklings",
+    "coverImage": "images/mock-019/cover.jpg",
+    "interiorImages": ["images/mock-019/page-1.jpg"]
+  },
+  {
+    "id": "mock-020",
+    "title": "The Polar Express",
+    "coverImage": "images/mock-020/cover.jpg",
+    "interiorImages": ["images/mock-020/page-1.jpg", "images/mock-020/page-2.jpg"]
+  }
+]

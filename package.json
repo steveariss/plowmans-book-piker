@@ -1,0 +1,21 @@
+{
+  "name": "book-picker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "cd server && node --watch index.mjs",
+    "dev:client": "cd client && npx vite --port 5173",
+    "build": "cd client && npx vite build",
+    "start": "cd server && node index.mjs",
+    "scrape": "cd scraper && node scrape.mjs",
+    "lint": "eslint . --ext .js,.jsx,.mjs",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0",
+    "eslint": "^8.57.0",
+    "prettier": "^3.4.0"
+  }
+}
