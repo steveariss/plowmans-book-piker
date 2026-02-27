@@ -90,3 +90,18 @@ dialog {
 dialog::backdrop {
   background: rgba(0, 0, 0, 0.6);
 }
+
+/* Responsive adjustments for Chromebook resolution (1366×768) */
+@media (max-width: 1024px) {
+  :root {
+    --spacing-lg: 16px;
+    --spacing-xl: 24px;
+  }
+}
+
+@media (max-width: 600px) {
+  :root {
+    --font-size-body: 16px;
+    --button-height-lg: 64px;
+  }
+}

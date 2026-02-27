@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: book-picker
+    runtime: node
+    buildCommand: npm install && cd client && npm install && npm run build && cd ../server && npm install
+    startCommand: cd server && node index.mjs
+    envVars:
+      - key: NODE_VERSION
+        value: 20.11.0
+      - key: PORT
+        value: 3000
+    disk:
+      name: book-picker-data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1
