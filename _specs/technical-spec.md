@@ -1,0 +1,663 @@
+# Book Picker — Technical Specification
+
+## 1. Tech Stack
+
+| Layer | Technology | Rationale |
+|-------|-----------|-----------|
+| **Frontend** | React 19 + Vite | Fast builds, modern React features, great DX |
+| **Routing** | React Router v7 | Multi-screen SPA navigation |
+| **Styling** | CSS Modules + CSS custom properties | Scoped styles, no build-time CSS framework needed, easy theming |
+| **Virtual Scrolling** | @tanstack/react-virtual | Performant rendering of 5,000+ book grid on admin screen |
+| **Carousel** | Swiper (or embla-carousel-react) | Touch-friendly, accessible carousel for book preview |
+| **Animations** | CSS animations + canvas-confetti | Lightweight bounce/shake/confetti effects for kids |
+| **Backend** | Node.js + Express | Simple API server + static file serving |
+| **Database** | better-sqlite3 | Zero-config, single-file DB, perfect for low-volume data |
+| **Scraper** | Playwright | Required — target site is a client-rendered React SPA (BookManager platform) |
+| **Package Manager** | npm | Standard, no special requirements |
+| **Linting** | ESLint + Prettier | Consistent code style |
+
+### Node.js Version
+- Minimum: Node.js 20 LTS
+
+---
+
+## 2. Project Structure
+
+```
+book-picker/
+├── _specs/                          # Specification documents (not deployed)
+│   ├── book-picker-high-level-spec.md
+│   └── technical-spec.md           # This file
+├── scraper/
+│   ├── package.json                # Playwright + scraper dependencies
+│   ├── scrape.mjs                  # Main scraper entry point
+│   ├── lib/
+│   │   ├── discover-api.mjs        # Intercept BookManager API endpoints
+│   │   ├── fetch-books.mjs         # Paginate through all books via API
+│   │   ├── fetch-detail.mjs        # Fetch detail page for interior images
+│   │   ├── download-images.mjs     # Download and save images locally
+│   │   └── progress.mjs            # Progress tracking + resumability
+│   └── state/
+│       └── scraper-state.json      # Tracks scraping progress (gitignored)
+├── server/
+│   ├── package.json
+│   ├── index.mjs                   # Express server entry point
+│   ├── routes/
+│   │   ├── books.mjs               # /api/books endpoints
+│   │   └── selections.mjs          # /api/selections endpoints
+│   ├── db/
+│   │   ├── schema.sql              # SQLite schema definition
+│   │   ├── init.mjs                # DB initialization logic
+│   │   └── bookpicker.db           # SQLite database file (gitignored)
+│   └── middleware/
+│       └── error-handler.mjs       # Centralized error handling
+├── client/
+│   ├── package.json
+│   ├── vite.config.js
+│   ├── index.html
+│   ├── src/
+│   │   ├── main.jsx                # React entry point
+│   │   ├── App.jsx                 # Top-level router setup
+│   │   ├── api/
+│   │   │   └── client.mjs          # Fetch wrapper for API calls
+│   │   ├── screens/
+│   │   │   ├── TeacherSetup.jsx    # Screen 1: name entry + nav buttons
+│   │   │   ├── BookBrowsing.jsx    # Screen 2: book grid for students
+│   │   │   ├── ThankYou.jsx        # Screen 4: confirmation screen
+│   │   │   ├── ManageBooks.jsx     # Screen 5: teacher curation/admin
+│   │   │   └── Report.jsx          # Screen 6: student selections report
+│   │   ├── components/
+│   │   │   ├── BookCard.jsx        # Book cover card with pick button
+│   │   │   ├── BookCard.module.css
+│   │   │   ├── PickButton.jsx      # Toggle select/deselect button
+│   │   │   ├── PickButton.module.css
+│   │   │   ├── BookCarousel.jsx    # Full-screen image carousel modal
+│   │   │   ├── BookCarousel.module.css
+│   │   │   ├── SelectionCounter.jsx # "⭐ 1 of 2 picked" indicator
+│   │   │   ├── DoneButton.jsx      # Large "All Done!" button
+│   │   │   ├── AdminBookCard.jsx   # Compact card with checkbox (admin)
+│   │   │   ├── SearchBar.jsx       # Text filter for admin grid
+│   │   │   ├── ConfirmDialog.jsx   # Reusable confirmation modal
+│   │   │   └── Confetti.jsx        # Confetti animation wrapper
+│   │   ├── hooks/
+│   │   │   ├── useBooks.js         # Fetch + cache book data
+│   │   │   └── useSelections.js    # Manage student pick state
+│   │   └── styles/
+│   │       ├── global.css          # CSS custom properties, resets, base styles
+│   │       └── animations.css      # Keyframe animations (bounce, shake, etc.)
+│   └── public/
+│       └── favicon.svg
+├── data/                            # Generated by scraper (gitignored except structure)
+│   ├── books.json                   # Book metadata
+│   └── images/
+│       └── {bookId}/
+│           ├── cover.jpg
+│           ├── page-1.jpg
+│           └── page-2.jpg
+├── .gitignore
+├── .prettierrc
+├── .eslintrc.cjs
+├── CLAUDE.md
+├── README.md
+└── package.json                     # Root package.json with workspace scripts
+```
+
+---
+
+## 3. Database Schema (SQLite)
+
+```sql
+-- Tracks which books the teacher has removed from the student view.
+-- Presence of a row means the book is hidden.
+CREATE TABLE IF NOT EXISTS deleted_books (
+    book_id    TEXT PRIMARY KEY,
+    deleted_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- Stores each student's two book selections.
+CREATE TABLE IF NOT EXISTS selections (
+    id           INTEGER PRIMARY KEY AUTOINCREMENT,
+    student_name TEXT NOT NULL,
+    book1_id     TEXT NOT NULL,
+    book1_title  TEXT NOT NULL,
+    book2_id     TEXT NOT NULL,
+    book2_title  TEXT NOT NULL,
+    created_at   TEXT NOT NULL DEFAULT (datetime('now'))
+);
+```
+
+### Notes
+- `deleted_books` is the curation state. Filtering is done at query time or in the API layer by excluding IDs present in this table.
+- `selections` stores one row per student submission. A student can appear multiple times if the teacher re-enters their name (this is by design — the teacher can always clear all data).
+- No foreign keys to book data since books live in a static JSON file, not the database.
+
+---
+
+## 4. API Contract
+
+Base URL: `/api`
+
+### Books
+
+#### `GET /api/books`
+Returns all **non-deleted** books for student browsing.
+
+**Response** `200 OK`
+```json
+{
+  "books": [
+    {
+      "id": "zb7C99cVE0ylBN2EXIzC2Q",
+      "title": "Book Title Here",
+      "coverImage": "/images/zb7C99cVE0ylBN2EXIzC2Q/cover.jpg",
+      "interiorImages": [
+        "/images/zb7C99cVE0ylBN2EXIzC2Q/page-1.jpg",
+        "/images/zb7C99cVE0ylBN2EXIzC2Q/page-2.jpg"
+      ]
+    }
+  ],
+  "total": 5162
+}
+```
+
+#### `GET /api/books/all`
+Returns **all** books with deletion status. For the admin/manage screen.
+
+**Response** `200 OK`
+```json
+{
+  "books": [
+    {
+      "id": "zb7C99cVE0ylBN2EXIzC2Q",
+      "title": "Book Title Here",
+      "coverImage": "/images/zb7C99cVE0ylBN2EXIzC2Q/cover.jpg",
+      "deleted": false
+    }
+  ],
+  "totalActive": 5162,
+  "totalDeleted": 12,
+  "totalAll": 5174
+}
+```
+
+Note: Interior images are omitted from this endpoint (admin doesn't need them).
+
+#### `POST /api/books/delete`
+Mark books as deleted (hidden from students).
+
+**Request**
+```json
+{ "bookIds": ["id1", "id2", "id3"] }
+```
+
+**Response** `200 OK`
+```json
+{ "deleted": 3 }
+```
+
+#### `POST /api/books/restore`
+Restore previously deleted books.
+
+**Request**
+```json
+{ "bookIds": ["id1", "id2"] }
+```
+
+**Response** `200 OK`
+```json
+{ "restored": 2 }
+```
+
+### Selections
+
+#### `POST /api/selections`
+Save a student's book picks.
+
+**Request**
+```json
+{
+  "studentName": "Emma",
+  "books": [
+    { "id": "abc123", "title": "Book One" },
+    { "id": "def456", "title": "Book Two" }
+  ]
+}
+```
+
+**Response** `201 Created`
+```json
+{ "id": 1 }
+```
+
+**Validation**: Exactly 2 books required. Returns `400` otherwise.
+
+#### `GET /api/selections`
+Get all student selections for the report.
+
+**Response** `200 OK`
+```json
+{
+  "selections": [
+    {
+      "id": 1,
+      "studentName": "Emma",
+      "book1Title": "Book One",
+      "book2Title": "Book Two",
+      "createdAt": "2025-02-26T10:30:00Z"
+    }
+  ]
+}
+```
+
+#### `GET /api/selections/csv`
+Download all selections as a CSV file.
+
+**Response** `200 OK` with `Content-Type: text/csv` and `Content-Disposition: attachment; filename="book-selections.csv"`
+
+```csv
+Student Name,Book 1,Book 2,Date
+Emma,Book One,Book Two,2025-02-26T10:30:00Z
+```
+
+#### `DELETE /api/selections`
+Clear all selection data.
+
+**Response** `200 OK`
+```json
+{ "cleared": true }
+```
+
+---
+
+## 5. Scraper Design
+
+### Challenge
+The target site (`anotherstoryedu.ca`) is a **client-rendered React SPA** on the **BookManager platform** (shop ID: `7603827`). Static HTTP requests return an empty `<div id="root">` — all content is rendered via JavaScript.
+
+### Strategy
+
+The scraper uses **Playwright** to:
+
+1. **Phase 1 — API Discovery**: Load the browse page in a headless browser with network interception enabled. Capture the XHR/fetch requests the React app makes to identify the BookManager data API endpoints, pagination params, and response shapes. Store discovered endpoints in config.
+
+2. **Phase 2 — Book List Scraping**: Once the API is identified, call it directly (via `fetch`/`axios` — no browser needed) to paginate through all ~5,174 books. Extract: `id`, `title`, `coverImageUrl`, `detailPageUrl`. Save progress after each page.
+
+3. **Phase 3 — Detail Page Scraping**: For each book, load the detail page in Playwright (or call a discovered API endpoint) to extract interior/preview image URLs. Use Playwright here if the detail page also requires JS rendering.
+
+4. **Phase 4 — Image Download**: Download all cover + interior images to `data/images/{bookId}/`. Use concurrent downloads (limit 3-5 parallel) with retry logic.
+
+### Resumability
+- The scraper maintains a `scraper/state/scraper-state.json` file tracking:
+  - Which books have been listed (Phase 2 complete)
+  - Which books have had details fetched (Phase 3 complete)
+  - Which images have been downloaded (Phase 4 complete)
+- On restart, the scraper skips already-completed work.
+- The state file is gitignored.
+
+### Rate Limiting
+- 1-2 second delay between page/detail requests.
+- Image downloads can be more aggressive (100ms delay) since they hit a CDN (`cdn1.bookmanager.com`).
+
+### Progress Output
+```
+[Phase 2] Fetching book list... page 12/52 (1,200 / 5,174 books)
+[Phase 3] Fetching details... 340 / 5,174 books (6.5%)
+[Phase 4] Downloading images... 1,230 / 12,400 images (9.9%)
+```
+
+### Output
+- `data/books.json` — array of book objects (see format in high-level spec)
+- `data/images/{bookId}/cover.jpg` — cover image
+- `data/images/{bookId}/page-N.jpg` — interior images
+
+### CLI Interface
+```bash
+cd scraper
+npm run scrape              # Full scrape (resumes if interrupted)
+npm run scrape -- --reset   # Clear state and start fresh
+npm run scrape -- --phase 2 # Run only Phase 2
+```
+
+---
+
+## 6. Frontend Architecture
+
+### Routing
+
+| Path | Screen | Access |
+|------|--------|--------|
+| `/` | Teacher Setup | Teacher |
+| `/browse` | Book Browsing Grid | Student |
+| `/thanks` | Thank You / Confirmation | Student |
+| `/admin/books` | Manage Books | Teacher |
+| `/admin/report` | Report | Teacher |
+
+### Component Tree
+
+```
+<App>
+  <Routes>
+    <Route path="/" element={<TeacherSetup />} />
+    <Route path="/browse" element={<BookBrowsing />}>
+      <!-- BookCarousel opens as a modal overlay, not a route -->
+    </Route>
+    <Route path="/thanks" element={<ThankYou />} />
+    <Route path="/admin/books" element={<ManageBooks />} />
+    <Route path="/admin/report" element={<Report />} />
+  </Routes>
+</App>
+```
+
+### Screen Details
+
+#### Screen 1: TeacherSetup (`/`)
+- Simple form: text input for student name + "Start" button.
+- "Start" navigates to `/browse` with the student name passed via React Router state (or URL param).
+- "Manage Books" navigates to `/admin/books`.
+- "View Report" navigates to `/admin/report`.
+- Minimal styling — this is a teacher-facing screen.
+
+#### Screen 2: BookBrowsing (`/browse`)
+- Fetches book list from `GET /api/books` on mount (via `useBooks` hook).
+- Renders a responsive CSS Grid of `<BookCard>` components.
+- **Lazy loading images**: Use native `loading="lazy"` on `<img>` tags. The browser handles this efficiently, especially in Chrome on Chromebooks.
+- **State management**: `useSelections` hook manages a `Set` of selected book IDs (max 2).
+  - `toggleSelection(bookId)` — adds if < 2 selected, removes if already selected, shakes if at limit.
+  - `selectedBooks` — the current Set.
+  - `isComplete` — true when exactly 2 are selected.
+- **SelectionCounter**: Shows "⭐ 1 of 2 picked" at the top. Sticky positioned.
+- **DoneButton**: Fixed at the bottom of the viewport. Appears (slides up) when `isComplete` is true. Tapping calls `POST /api/selections` then navigates to `/thanks`.
+- **BookCarousel**: Opens as a `<dialog>` element (native modal) when a cover image is tapped. Contains a swipeable carousel of all book images. Includes a PickButton inside.
+
+**Interaction details:**
+- Tapping a **cover image** → opens carousel.
+- Tapping a **PickButton** → toggles selection (does NOT open carousel).
+- Attempting a 3rd selection → PickButton shakes briefly (CSS animation), nothing else happens.
+
+#### Screen 3: BookCarousel (modal overlay)
+- Uses `<dialog>` element for native modal behavior (backdrop, focus trapping, Escape to close).
+- Swipeable carousel via Swiper or embla-carousel-react.
+- Large left/right arrow buttons on either side.
+- Large "✕" close button in top-right.
+- PickButton in the carousel reflects the current selection state of the book.
+
+#### Screen 4: ThankYou (`/thanks`)
+- Receives the two selected book objects via router state.
+- Shows both cover images side by side with a "Great choices! 🎉" message.
+- Fires `canvas-confetti` on mount.
+- Auto-redirects to `/` after 5 seconds, or on tap anywhere.
+
+#### Screen 5: ManageBooks (`/admin/books`)
+- Fetches from `GET /api/books/all` on mount.
+- **SearchBar**: Text input that filters the displayed books by title (client-side filter).
+- **VirtualizedGrid**: Uses `@tanstack/react-virtual` to render only visible books. Each item is an `<AdminBookCard>` with a checkbox.
+- **SelectAll/DeselectAll**: Toggles checkbox state for all currently **visible** (filtered) books.
+- **StatusBar**: "X selected · Y active of Z total" — always visible.
+- **DeleteSelectedButton**: Red button. Shows `<ConfirmDialog>` with "Remove X books from the student list?". On confirm, calls `POST /api/books/delete`.
+- **ShowDeletedToggle**: Switches the view to show only deleted books, each with a "Restore" button that calls `POST /api/books/restore`.
+- **BackButton**: Returns to `/`.
+
+#### Screen 6: Report (`/admin/report`)
+- Fetches from `GET /api/selections` on mount.
+- Renders an HTML `<table>` with columns: Student Name, Book 1, Book 2, Date.
+- **DownloadCSVButton**: Triggers `GET /api/selections/csv` and downloads the file.
+- **ClearAllDataButton**: Shows `<ConfirmDialog>`, then calls `DELETE /api/selections`.
+- **BackButton**: Returns to `/`.
+
+### Hooks
+
+#### `useBooks()`
+```js
+// Returns { books, isLoading, error, refresh }
+// Fetches GET /api/books on mount, caches in state
+```
+
+#### `useSelections()`
+```js
+// Returns { selectedIds, toggleSelection, isComplete, selectedBooks, clear }
+// Manages a Set<string> of selected book IDs (max 2)
+// selectedBooks returns full book objects for the selected IDs
+```
+
+---
+
+## 7. Styling Approach
+
+### Design Tokens (CSS Custom Properties)
+```css
+:root {
+  /* Colors — bright, friendly palette */
+  --color-primary: #4CAF50;       /* Green — pick/confirm actions */
+  --color-primary-hover: #388E3C;
+  --color-secondary: #2196F3;     /* Blue — navigation, info */
+  --color-danger: #F44336;        /* Red — delete/remove (admin only) */
+  --color-warning: #FF9800;       /* Orange — deselect/undo */
+  --color-bg: #FFF8E1;            /* Warm cream background */
+  --color-card: #FFFFFF;
+  --color-text: #333333;
+  --color-text-light: #666666;
+
+  /* Sizing — large touch targets */
+  --touch-target-min: 48px;       /* Minimum tappable area */
+  --button-height: 56px;          /* Standard button height */
+  --button-height-lg: 72px;       /* Large buttons (Done, Pick) */
+  --card-border-radius: 16px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  /* Typography */
+  --font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
+  --font-size-body: 18px;
+  --font-size-heading: 28px;
+  --font-size-large: 36px;
+}
+```
+
+### Key Animations
+```css
+@keyframes bounce {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-5px); }
+  75% { transform: translateX(5px); }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+```
+
+- **Bounce**: Applied to PickButton on selection (0.3s).
+- **Shake**: Applied to PickButton when attempting a 3rd selection (0.4s).
+- **SlideUp**: Applied to DoneButton appearing (0.3s).
+- **Confetti**: `canvas-confetti` library on ThankYou screen.
+
+---
+
+## 8. Server Architecture
+
+### Express Setup (`server/index.mjs`)
+
+```
+1. Initialize Express app
+2. Initialize SQLite database (run schema.sql if tables don't exist)
+3. Load books.json into memory at startup
+4. Mount routes:
+   - /api/books     → books.mjs
+   - /api/selections → selections.mjs
+5. Serve static files:
+   - /images/*      → data/images/ (book images from scraper)
+   - /*             → client/dist/ (built React app)
+6. SPA fallback: serve index.html for all non-API, non-static routes
+7. Error handler middleware
+8. Listen on PORT (default 3000)
+```
+
+### Book Data Loading
+- `data/books.json` is read into memory once at startup.
+- The in-memory array is filtered at request time using the `deleted_books` table.
+- If the JSON file is large (5,000+ entries), this is still trivial for Node.js (a few MB of JSON).
+
+### Environment
+- `PORT` — server port (default: `3000`)
+- `DATABASE_PATH` — path to SQLite file (default: `server/db/bookpicker.db`)
+- `DATA_DIR` — path to scraped data (default: `data/`)
+
+---
+
+## 9. Build & Development
+
+### Root `package.json` Scripts
+```json
+{
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "cd server && node --watch index.mjs",
+    "dev:client": "cd client && npx vite --port 5173",
+    "build": "cd client && npx vite build",
+    "start": "cd server && node index.mjs",
+    "scrape": "cd scraper && node scrape.mjs",
+    "lint": "eslint . --ext .js,.jsx,.mjs",
+    "format": "prettier --write ."
+  }
+}
+```
+
+### Development Workflow
+1. **Dev mode**: `npm run dev` starts both the Vite dev server (port 5173) and the Express server (port 3000). Vite proxies `/api` and `/images` requests to Express.
+2. **Production build**: `npm run build` creates `client/dist/`. Express serves this directory.
+3. **Scraping**: `npm run scrape` runs the full scraper pipeline. Output goes to `data/`.
+
+### Vite Config
+```js
+// client/vite.config.js
+export default {
+  server: {
+    proxy: {
+      '/api': 'http://localhost:3000',
+      '/images': 'http://localhost:3000'
+    }
+  },
+  build: {
+    outDir: 'dist'
+  }
+}
+```
+
+---
+
+## 10. Implementation Phases
+
+### Phase 1: Project Scaffolding
+1. Initialize root `package.json` with workspace scripts.
+2. Set up `client/` with Vite + React.
+3. Set up `server/` with Express + better-sqlite3.
+4. Set up `scraper/` with Playwright.
+5. Configure ESLint, Prettier, `.gitignore`.
+6. Create SQLite schema file.
+7. Add CSS custom properties and base styles.
+
+### Phase 2: Scraper
+1. Implement API discovery (Phase 1 of scraper).
+2. Implement book list pagination (Phase 2 of scraper).
+3. Implement detail page scraping (Phase 3 of scraper).
+4. Implement image download with concurrency + retry (Phase 4 of scraper).
+5. Implement resumability via state file.
+6. Test with a small subset first, then full run.
+
+### Phase 3: Backend API
+1. Implement database initialization (`schema.sql` + `init.mjs`).
+2. Implement `GET /api/books` (load JSON, filter deleted).
+3. Implement `GET /api/books/all` (load JSON, join with deleted status).
+4. Implement `POST /api/books/delete` and `POST /api/books/restore`.
+5. Implement `POST /api/selections` with validation.
+6. Implement `GET /api/selections`.
+7. Implement `GET /api/selections/csv`.
+8. Implement `DELETE /api/selections`.
+9. Add error handling middleware.
+
+### Phase 4: Frontend — Core Screens
+1. Set up React Router with all routes.
+2. Build TeacherSetup screen.
+3. Build BookBrowsing screen with BookCard grid and lazy loading.
+4. Build `useBooks` and `useSelections` hooks.
+5. Build PickButton with toggle + bounce/shake animations.
+6. Build SelectionCounter.
+7. Build DoneButton with slide-up animation.
+8. Build ThankYou screen with confetti.
+9. Wire up API calls (submit selections, navigate flow).
+
+### Phase 5: Frontend — Carousel
+1. Install and configure Swiper (or embla-carousel-react).
+2. Build BookCarousel as a `<dialog>` modal.
+3. Add left/right navigation arrows.
+4. Add PickButton inside carousel.
+5. Test touch/swipe behavior.
+
+### Phase 6: Frontend — Admin Screens
+1. Build ManageBooks screen with search/filter bar.
+2. Implement virtualized grid with `@tanstack/react-virtual`.
+3. Build AdminBookCard with checkbox.
+4. Implement select all / deselect all for visible items.
+5. Build delete flow with ConfirmDialog.
+6. Build show-deleted toggle with restore functionality.
+7. Build Report screen with table and CSV download.
+8. Build clear-all-data flow with ConfirmDialog.
+
+### Phase 7: Polish & Deploy
+1. Add Nunito font (Google Fonts or self-hosted).
+2. Responsive testing on 1366×768 (Chromebook resolution).
+3. Touch target testing (all interactive elements ≥ 48px).
+4. Performance testing with full book dataset.
+5. Set up deployment (Railway, Render, Fly.io, or similar).
+6. Write README with setup/deployment instructions.
+
+---
+
+## 11. Key Design Decisions
+
+### Why `<dialog>` for the carousel modal?
+Native `<dialog>` provides built-in modal behavior: backdrop, focus trapping, Escape key to close. This is more accessible and simpler than a custom modal implementation.
+
+### Why CSS Modules instead of Tailwind?
+The app has a small number of components with specific, whimsical styling. CSS Modules keep styles co-located with components without adding a Tailwind build step. Custom properties provide the shared design tokens.
+
+### Why load books.json into memory?
+With ~5,000 books at ~200 bytes each, the full dataset is ~1MB. Keeping it in memory avoids repeated file reads and makes filtering fast. The data is read-only at runtime (scraper generates it offline).
+
+### Why SQLite instead of a JSON file for state?
+SQLite handles concurrent writes safely (multiple Chromebooks submitting at the same time), supports proper queries for the report, and makes CSV export trivial. `better-sqlite3` is synchronous and fast, with zero configuration.
+
+### Why not store books in SQLite too?
+Book data is static (generated by the scraper) and potentially large. Keeping it as a JSON file simplifies the scraper output and makes it easy to inspect/version. The dynamic state (deletions, selections) is in SQLite where it belongs.
+
+---
+
+## 12. Performance Considerations
+
+- **Image lazy loading**: Use native `loading="lazy"` on all book cover `<img>` tags. Chrome on Chromebooks supports this natively.
+- **Virtualized admin grid**: The admin screen must render 5,000+ items. `@tanstack/react-virtual` only renders visible items, keeping the DOM small.
+- **Student grid**: For the student browsing grid, the teacher may have curated down to ~50-200 books. A simple CSS Grid with lazy-loaded images is sufficient — no virtualization needed.
+- **Static image serving**: Express serves images from the filesystem with proper cache headers (`Cache-Control: public, max-age=86400`).
+- **Book data caching**: The `GET /api/books` response can include `Cache-Control` headers since book data rarely changes during a session.
+
+---
+
+## 13. Accessibility Notes
+
+While the primary users are 4-6 year olds on touch devices, basic accessibility should be maintained:
+
+- All interactive elements must be keyboard accessible (important for carousel navigation).
+- `<dialog>` provides built-in focus management for the carousel modal.
+- Colour contrast should meet WCAG AA for text elements (teacher-facing screens).
+- Images should have `alt` text (book title).
+- The PickButton should use `aria-pressed` to indicate selection state.
+- The carousel should use appropriate ARIA roles (`role="dialog"`, `aria-label`).
