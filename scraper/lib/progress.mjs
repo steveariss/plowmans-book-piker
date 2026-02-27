@@ -42,7 +42,12 @@ export function saveState(state) {
 
 export function resetState() {
   mkdirSync(STATE_DIR, { recursive: true });
-  writeFileSync(STATE_FILE, JSON.stringify(DEFAULT_STATE, null, 2));
+  const serializable = {
+    ...DEFAULT_STATE,
+    detailsFetched: [],
+    imagesDownloaded: [],
+  };
+  writeFileSync(STATE_FILE, JSON.stringify(serializable, null, 2));
 }
 
 export function logProgress(phase, message) {
