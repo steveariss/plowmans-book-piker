@@ -1,0 +1,41 @@
+.wrapper {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: var(--spacing-lg);
+  background: linear-gradient(transparent, var(--color-bg) 30%);
+  z-index: 100;
+  animation: slideUp 0.3s ease forwards;
+}
+
+.button {
+  display: block;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+  height: var(--button-height-lg);
+  background: var(--color-primary);
+  color: white;
+  border: none;
+  border-radius: var(--card-border-radius);
+  font-size: 28px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.button:hover {
+  background: var(--color-primary-hover);
+}
+
+.button:active {
+  transform: scale(0.97);
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}

@@ -1,4 +1,7 @@
 import { Routes, Route } from 'react-router-dom';
+import TeacherSetup from './screens/TeacherSetup.jsx';
+import BookBrowsing from './screens/BookBrowsing.jsx';
+import ThankYou from './screens/ThankYou.jsx';
 
 function Placeholder({ name }) {
   return (
@@ -12,9 +15,9 @@ function Placeholder({ name }) {
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<Placeholder name="Teacher Setup" />} />
-      <Route path="/browse" element={<Placeholder name="Book Browsing" />} />
-      <Route path="/thanks" element={<Placeholder name="Thank You" />} />
+      <Route path="/" element={<TeacherSetup />} />
+      <Route path="/browse" element={<BookBrowsing />} />
+      <Route path="/thanks" element={<ThankYou />} />
       <Route path="/admin/books" element={<Placeholder name="Manage Books" />} />
       <Route path="/admin/report" element={<Placeholder name="Report" />} />
     </Routes>

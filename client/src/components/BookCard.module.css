@@ -1,0 +1,51 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-card);
+  border-radius: var(--card-border-radius);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.coverButton {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: #f0f0f0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cover {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+}
+
+.info {
+  padding: var(--spacing-sm) var(--spacing-md);
+  flex: 1;
+}
+
+.title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* PickButton sits at the bottom of the card */
+.card > :last-child {
+  margin: var(--spacing-sm) var(--spacing-md) var(--spacing-md);
+}

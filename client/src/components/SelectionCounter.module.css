@@ -1,0 +1,26 @@
+.counter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: white;
+  border-radius: 50px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--color-text);
+  position: sticky;
+  top: var(--spacing-md);
+  z-index: 10;
+  width: fit-content;
+  margin: 0 auto var(--spacing-lg);
+}
+
+.star {
+  font-size: 28px;
+}
+
+.text {
+  white-space: nowrap;
+}

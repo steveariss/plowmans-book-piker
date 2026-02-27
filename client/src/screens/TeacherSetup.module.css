@@ -1,0 +1,87 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: var(--spacing-xl);
+}
+
+.title {
+  font-size: 48px;
+  font-weight: 800;
+  color: var(--color-text);
+  margin-bottom: var(--spacing-sm);
+}
+
+.subtitle {
+  font-size: 20px;
+  color: var(--color-text-light);
+  margin-bottom: var(--spacing-xl);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: var(--spacing-xl);
+}
+
+.input {
+  height: var(--button-height);
+  padding: 0 var(--spacing-lg);
+  border: 2px solid var(--color-border);
+  border-radius: var(--card-border-radius);
+  font-size: 20px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.input:focus {
+  border-color: var(--color-secondary);
+}
+
+.startButton {
+  height: var(--button-height-lg);
+  background: var(--color-secondary);
+  color: white;
+  border: none;
+  border-radius: var(--card-border-radius);
+  font-size: 24px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.startButton:hover:not(:disabled) {
+  background: var(--color-secondary-hover);
+}
+
+.startButton:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.adminLinks {
+  display: flex;
+  gap: var(--spacing-md);
+}
+
+.adminButton {
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 2px solid var(--color-border);
+  border-radius: var(--card-border-radius);
+  background: white;
+  color: var(--color-text-light);
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.adminButton:hover {
+  border-color: var(--color-secondary);
+  color: var(--color-secondary);
+}
