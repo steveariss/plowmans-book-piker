@@ -1,3 +1,10 @@
+---
+type: technical
+status: active
+created: 2025-01-01
+depends-on: product-book-picker
+---
+
 # Book Picker — Technical Specification
 
 ## 1. Tech Stack

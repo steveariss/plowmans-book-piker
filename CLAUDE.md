@@ -4,10 +4,14 @@ A single-page web app that lets students (ages 4-6) browse picture book covers a
 
 ## Specs
 
-- **High-level spec**: `_specs/book-picker-high-level-spec.md` — product requirements, user flows, and UI/UX details.
-- **Technical spec**: `_specs/technical-spec.md` — tech stack, architecture, API contract, database schema, component tree, implementation phases, and design decisions.
+All specs live in `_specs/`. **Read `_specs/README.md` first** — it has the full index with descriptions and statuses.
 
-**Read both spec files before making any implementation decisions.**
+The two foundational specs that every agent should read before making implementation decisions:
+
+- `_specs/product-book-picker.md` — product requirements, user flows, and UI/UX details
+- `_specs/technical-book-picker.md` — tech stack, architecture, API contract, DB schema, implementation phases
+
+Feature specs (`feature-*.md`) are read as needed for the specific task at hand. New specs should follow `_specs/_template.md`.
 
 ## Tech Stack
 

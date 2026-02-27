@@ -1,3 +1,9 @@
+---
+type: product
+status: active
+created: 2025-01-01
+---
+
 # Book Picker – Product Spec
 
 ## Overview
