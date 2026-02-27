@@ -78,7 +78,13 @@ export async function downloadAllImages(state) {
 }
 
 export function generateBooksJson(state) {
-  const books = state.bookList;
+  // Deduplicate by ID (API pages may overlap at boundaries)
+  const seen = new Set();
+  const books = state.bookList.filter((b) => {
+    if (seen.has(b.id)) return false;
+    seen.add(b.id);
+    return true;
+  });
 
   const output = books.map((book) => {
     const interiorImages = [];
