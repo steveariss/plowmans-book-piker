@@ -1,17 +1,17 @@
 :root {
   /* Colors — bright, friendly palette */
-  --color-primary: #4CAF50;
-  --color-primary-hover: #388E3C;
-  --color-secondary: #2196F3;
-  --color-secondary-hover: #1976D2;
-  --color-danger: #F44336;
-  --color-danger-hover: #D32F2F;
-  --color-warning: #FF9800;
-  --color-bg: #FFF8E1;
-  --color-card: #FFFFFF;
+  --color-primary: #4caf50;
+  --color-primary-hover: #388e3c;
+  --color-secondary: #2196f3;
+  --color-secondary-hover: #1976d2;
+  --color-danger: #f44336;
+  --color-danger-hover: #d32f2f;
+  --color-warning: #ff9800;
+  --color-bg: #fff8e1;
+  --color-card: #ffffff;
   --color-text: #333333;
   --color-text-light: #666666;
-  --color-border: #E0E0E0;
+  --color-border: #e0e0e0;
 
   /* Sizing — large touch targets */
   --touch-target-min: 48px;
