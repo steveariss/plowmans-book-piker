@@ -9,9 +9,7 @@ depends-on: feature-book-card-redesign
 
 ## 1. Overview
 
-This spec provides the implementation details for the book card redesign described in `feature-book-card-redesign.md`. The work has two phases: (1) build a temporary exploration page at `/explore` showing 5 design approaches side-by-side with real book data, and (2) after the team chooses a direction, apply that approach to the production screens.
-
-This spec covers phase 1 — the exploration page — in full detail. Phase 2 (production application) is outlined but depends on which approach is chosen.
+This spec provides the implementation details for the book card redesign. The work has two tracks: (1) CSS grid fixes to remove cover cropping and add warmer, more physical shadows, and (2) a 3D interactive book preview built with React Three Fiber to replace the current flat embla-carousel modal. The R3F implementation is adapted from [wass08/r3f-animated-book-slider-final](https://github.com/wass08/r3f-animated-book-slider-final), which creates a 3D book with flippable pages using bone-based page-curl animation.
 
 ---
 
@@ -41,59 +39,52 @@ The `ThankYou` screen has the same problem:
 
 Books with square, landscape, or tall/narrow covers are cropped. Children ages 4-6 choose books entirely by cover art, so this directly undermines the product experience.
 
+The current book preview (embla-carousel in a `<dialog>` modal) is functional but flat — it shows cover and interior images as a horizontal slideshow. A 3D book with page-flipping would be more immersive and delightful for young children.
+
 ---
 
 ## 3. Goals
 
-- **Build a comparison page** showing all 5 design approaches with real book data, fully interactive, togglable between overview and fullscreen views.
-- **Zero cover cropping** in every approach — covers display at natural proportions.
-- **CSS-only effects** — no JS animation libraries, no new dependencies.
-- **Isolated code** — the exploration page and all its components can be deleted in 3 steps with zero side effects on production code.
-- **Chromebook-smooth** — all effects performant at 1366x768 on modest hardware.
+- **Zero cover cropping** in the browsing grid — covers display at natural proportions.
+- **3D book preview** — replace the flat carousel with an interactive 3D book using React Three Fiber, where children can flip through pages.
+- **Performant on Chromebooks** — Three.js is only loaded when a child taps a book (code-split). The grid itself uses plain CSS.
+- **Maintain usability** — touch targets >= 48px, PickButton stays accessible, dialog pattern preserved.
+- **CSS-only grid improvements** — no new dependencies for the browsing grid. Warmer shadows and natural proportions.
 
 ---
 
 ## 4. Proposed Solution
 
-### 4.1 File Structure
+### 4.1 Dependencies
 
-All exploration code is isolated for clean deletion:
+Add to `client/package.json`:
+
+| Package | Version | Purpose |
+|---------|---------|---------|
+| `three` | ^0.170.0 | Core 3D graphics library |
+| `@react-three/fiber` | ^9.x | React renderer for Three.js (v9 for React 19) |
+| `@react-three/drei` | ^10.x | Reusable R3F components (Environment, Float, useTexture) |
+| `maath` | ^0.10.8 | Math utilities for easing (easing.dampAngle) |
+
+Remove after verification: `embla-carousel-react`.
+
+### 4.2 File Structure
+
+All new 3D book code lives in a dedicated `book3d/` directory:
 
 ```
 client/src/
-  screens/
-    Explore.jsx                     # NEW — exploration page
-    Explore.module.css              # NEW
   components/
-    explore/                        # NEW — entire dir deleted when done
-      ExploreSection.jsx            # Section wrapper (heading + description + grid)
-      ExploreSection.module.css
-      ExploreNav.jsx                # View mode toggle + fullscreen prev/next
-      ExploreNav.module.css
-      TableBookCard.jsx             # Approach A: "Books on a Table"
-      TableBookCard.module.css
-      ShelfBookCard.jsx             # Approach B: "3D Bookshelf"
-      ShelfBookCard.module.css
-      FloatingBookCard.jsx          # Approach C: "Floating Books"
-      FloatingBookCard.module.css
-      EaselBookCard.jsx             # Approach D: "Storybook Easels"
-      EaselBookCard.module.css
-      CleanBookCard.jsx             # Approach E: "Simple and Clean"
-      CleanBookCard.module.css
-      MasonryGrid.jsx               # CSS column-count masonry layout
-      MasonryGrid.module.css
-      UniformRowGrid.jsx            # Fixed row height + flex layout
-      UniformRowGrid.module.css
+    book3d/                          # NEW — all 3D book preview code
+      Book3DPreview.jsx              # Top-level: dialog + Canvas + controls + PickButton
+      Book3DPreview.module.css       # Dialog and overlay styling
+      Book3DScene.jsx                # R3F scene: lights, environment, Float, Book
+      Book3DPage.jsx                 # Single page: SkinnedMesh + bone animation
+      Book3D.jsx                     # Book assembly: pages array, sequential turning
+      pageGeometry.js                # Shared BoxGeometry + skin weights builder
 ```
 
-Files to modify:
-
-| File | Change |
-|------|--------|
-| `client/src/App.jsx` | Add `/explore` route |
-| `client/src/styles/global.css` | Add warm shadow design tokens |
-
-### 4.2 Design Tokens
+### 4.3 Design Tokens
 
 Add to `global.css` `:root` block:
 
@@ -104,9 +95,9 @@ Add to `global.css` `:root` block:
 --shadow-warm-lg: 0 8px 24px rgba(139, 90, 43, 0.18), 0 16px 40px rgba(139, 90, 43, 0.12);
 ```
 
-### 4.3 Fixing Cover Aspect Ratio (CSS-only, no dimension metadata)
+### 4.4 CSS Grid Fixes
 
-No changes to book data. The fix is purely CSS. Every exploration card component uses:
+**BookCard.module.css** — remove forced aspect ratio, add warm shadows:
 
 ```css
 .cover {
@@ -114,457 +105,302 @@ No changes to book data. The fix is purely CSS. Every exploration card component
   height: auto;
   display: block;
 }
-```
-
-The `<img>` renders at its natural proportions. Card heights vary per book. The grid layout strategy handles the varying heights.
-
-The `.coverButton` retains `background: #f0f0f0` as a loading placeholder. Add `min-height: 120px` to prevent layout shift while images load.
-
-### 4.4 Grid Layout Strategies
-
-The spec requires at least 2 grid strategies. We implement all 3, paired with the approaches that best suit them.
-
-#### Centered Grid (CSS Grid, equal-width columns)
-
-**Used by:** Approaches A (Table), C (Floating), D (Easels)
-
-Standard CSS Grid. Cards use `align-self: start` so they don't stretch to fill the tallest item in the row. Shorter covers have whitespace around them.
-
-```css
-.centeredGrid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--spacing-lg);
-}
-
-@media (max-width: 1200px) {
-  .centeredGrid { grid-template-columns: repeat(3, 1fr); }
-}
-
-@media (max-width: 900px) {
-  .centeredGrid { grid-template-columns: repeat(2, 1fr); }
-}
-```
-
-#### Masonry Grid (CSS multi-column)
-
-**Used by:** Approach E (Simple and Clean)
-
-CSS `column-count` for a Pinterest-style layout with no JS. Items fill top-to-bottom per column, which is acceptable for visual browsing.
-
-```css
-.masonryGrid {
-  column-count: 4;
-  column-gap: var(--spacing-lg);
-}
-
-.masonryItem {
-  break-inside: avoid;
-  margin-bottom: var(--spacing-lg);
-}
-```
-
-Responsive: 3 columns at <=1200px, 2 at <=900px.
-
-Component props: `{ books, CardComponent, cardProps }`.
-
-#### Uniform Row Height (Flexbox)
-
-**Used by:** Approach B (3D Bookshelf)
-
-Flex rows with a fixed height (280px). Each image scales to fill the row height; width varies by cover proportion. For Approach B, each row gets a decorative shelf border (6px solid warm brown + subtle shadow).
-
-```css
-.row {
-  display: flex;
-  align-items: flex-end;
-  gap: var(--spacing-lg);
-  padding-bottom: 8px;
-  border-bottom: 6px solid #C4A35A;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-  margin-bottom: var(--spacing-xl);
-}
-```
-
-Component props: `{ books, CardComponent, cardProps, rowHeight }`.
-
-### 4.5 The Five Approach Card Components
-
-All share the same props interface: `{ book, picked, onPick, onPreview, shake, index }`.
-
-All reuse the existing `PickButton` component. All render: cover image button -> title -> PickButton.
-
----
-
-#### Approach A: "Books on a Table" — `TableBookCard`
-
-**Visual:** Slight random tilt per card, warm directional shadows, organic scattered-table feel.
-
-**Tilt logic:** Deterministic hash of `book.id` to produce rotation in range -3 to +3 degrees. Set as `--tilt` CSS custom property inline.
-
-```jsx
-const rotation = useMemo(() => {
-  let hash = 0;
-  for (const ch of book.id) hash = ((hash << 5) - hash + ch.charCodeAt(0)) | 0;
-  return (hash % 7) - 3; // -3 to +3 degrees
-}, [book.id]);
-
-// Set on card div: style={{ '--tilt': `${rotation}deg` }}
-```
-
-**CSS highlights:**
-
-```css
-.card {
-  transform: rotate(var(--tilt));
-  box-shadow: var(--shadow-warm-sm);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-}
-
-.card:hover {
-  transform: rotate(var(--tilt)) translateY(-6px) scale(1.03);
-  box-shadow: var(--shadow-warm-lg);
-}
-```
-
----
-
-#### Approach B: "3D Bookshelf" — `ShelfBookCard`
-
-**Visual:** 3D book with visible spine (left edge) and page edges (right side). Sits on a virtual shelf.
-
-**Structure:**
-
-```jsx
-<div className={styles.bookWrapper}>        {/* perspective: 800px */}
-  <div className={styles.book}>             {/* preserve-3d, rotateY(-5deg) */}
-    <button className={styles.coverButton}> {/* cover image */}
-      <img className={styles.cover} ... />
-    </button>
-  </div>
-  <div className={styles.info}>...</div>
-  <div className={styles.pickWrapper}>...</div>
-</div>
-```
-
-**CSS highlights:**
-
-```css
-.book {
-  position: relative;
-  transform-style: preserve-3d;
-  transform: rotateY(-5deg);
-  transition: transform 0.3s ease;
-}
-
-.book:hover {
-  transform: rotateY(-15deg);
-}
-
-/* Spine — left edge */
-.book::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 16px;
-  height: 100%;
-  background: linear-gradient(to right, #8B6914, #A0822A);
-  transform: rotateY(90deg) translateZ(0px) translateX(-8px);
-  transform-origin: left center;
-  border-radius: 2px 0 0 2px;
-}
-
-/* Page edges — right side */
-.book::after {
-  content: '';
-  position: absolute;
-  top: 4px;
-  right: -6px;
-  width: 6px;
-  height: calc(100% - 8px);
-  background: repeating-linear-gradient(
-    to bottom,
-    #f5f0e6 0px, #f5f0e6 1px,
-    #e8e0d0 1px, #e8e0d0 2px
-  );
-  border-radius: 0 2px 2px 0;
-}
-```
-
----
-
-#### Approach C: "Floating Books" — `FloatingBookCard`
-
-**Visual:** Continuous gentle bobbing animation, each card at different rates. Soft rounded shadows.
-
-**Animation timing:** Varied per card using `index` prop:
-
-```jsx
-const bobDuration = 3 + (index % 5) * 0.4;  // 3s to 4.6s
-const bobDelay = (index % 7) * 0.3;          // 0s to 1.8s
-// Set as: style={{ '--bob-duration': `${bobDuration}s`, '--bob-delay': `-${bobDelay}s` }}
-```
-
-**CSS highlights:**
-
-```css
-@keyframes bob {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-6px); }
-}
 
 .card {
   box-shadow: var(--shadow-warm-sm);
-  animation: bob var(--bob-duration) ease-in-out var(--bob-delay) infinite;
-  transition: box-shadow 0.3s ease;
 }
 
 .card:hover {
-  animation-play-state: paused;
-  transform: translateY(-12px);
-  box-shadow: var(--shadow-warm-lg);
-}
-```
-
----
-
-#### Approach D: "Storybook Easels" — `EaselBookCard`
-
-**Visual:** Cover propped on a small easel stand, tilted slightly. Stands straighter on hover.
-
-**Structure:**
-
-```jsx
-<div className={styles.card}>
-  <div className={styles.easelWrapper}>     {/* perspective: 600px */}
-    <button className={styles.coverButton}> {/* rotateX(8deg), transform-origin: bottom center */}
-      <img className={styles.cover} ... />
-    </button>
-    <div className={styles.easel} aria-hidden="true" />  {/* decorative stand */}
-  </div>
-  <div className={styles.info}>...</div>
-  <div className={styles.pickWrapper}>...</div>
-</div>
-```
-
-**CSS highlights:**
-
-```css
-.coverButton {
-  transform: rotateX(8deg);
-  transform-origin: bottom center;
-  transition: transform 0.3s ease;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-}
-
-.coverButton:hover {
-  transform: rotateX(2deg);  /* stands straighter */
-}
-
-/* Easel stand bar */
-.easel {
-  width: 40%;
-  height: 12px;
-  background: #C4A35A;
-  border-radius: 0 0 4px 4px;
-  margin-top: -2px;
-  position: relative;
-}
-
-/* Easel legs */
-.easel::before, .easel::after {
-  content: '';
-  position: absolute;
-  bottom: -16px;
-  width: 3px;
-  height: 16px;
-  background: #A0822A;
-}
-.easel::before { left: 20%; }
-.easel::after { right: 20%; }
-```
-
----
-
-#### Approach E: "Simple and Clean" — `CleanBookCard`
-
-**Visual:** No transforms, no animation. Natural cover dimensions with warmer, deeper shadow.
-
-**CSS highlights:**
-
-```css
-.card {
-  box-shadow: var(--shadow-warm-sm);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  break-inside: avoid;  /* for masonry column layout */
-}
-
-.card:hover {
-  transform: translateY(-2px);
   box-shadow: var(--shadow-warm-md);
 }
+
+.coverButton {
+  min-height: 120px; /* prevent layout shift while images load */
+}
 ```
 
----
+**BookBrowsing.module.css** — prevent cards stretching to tallest in row:
 
-### 4.6 ExploreSection Component
+```css
+.grid {
+  align-items: start;
+}
+```
 
-Wrapper for one approach section. Renders:
+**ThankYou.module.css** — same cover fix:
 
-1. **Heading** — approach name (e.g., "A: Books on a Table")
-2. **Description** — one sentence summarizing the approach's character
-3. **Grid** — the appropriate grid component with the approach's card component
+```css
+.cover {
+  width: 100%;
+  height: auto;
+  display: block;
+}
 
-Props: `{ name, description, books, CardComponent, GridComponent, gridProps, cardProps }`.
+.bookCard {
+  max-width: 240px;
+  flex: 0 1 auto;
+}
+```
 
-The section renders a `<section>` element with a heading and then either the centered grid (inline CSS grid styles), the MasonryGrid component, or the UniformRowGrid component, depending on the approach.
+### 4.5 Image Dimension Preprocessing
 
-### 4.7 ExploreNav Component
+Add `coverWidth` and `coverHeight` to each book entry in `books.json`. Benefits:
 
-Fixed bar at the top of the exploration page.
+- **Grid**: set proper aspect-ratio placeholders before images load, eliminating layout shift
+- **3D book**: build page geometry at correct proportions immediately
+- **Scraper**: already processes images — capturing dimensions during scraping is natural
+- **Mock data**: a small script reads existing mock images and patches `books-sample.json`
 
-**View toggle:** Two buttons — "Overview" (all sections stacked) and "Full Screen" (one at a time).
-
-**Fullscreen mode nav:** Previous/Next arrow buttons + section indicator (e.g., "2 of 5 — 3D Bookshelf"). Only visible in fullscreen mode.
-
-Props: `{ viewMode, onViewModeChange, activeSection, onSectionChange, totalSections, activeName }`.
-
-### 4.8 Explore Screen
-
-**Route:** `/explore` in `App.jsx`.
-
-**State:**
-- `viewMode`: `'overview'` | `'fullscreen'`
-- `activeSection`: `0`-`4` (index into approaches array)
-
-**Books:** Loads via existing `useBooks()` hook. Selects first 12 books from the loaded set via `useMemo`. Real library data naturally includes diverse aspect ratios. If the first 12 don't provide enough variety, substitute a hardcoded list of specific book IDs.
-
-**Interactivity:** Each section gets its own independent pick state from `useSelections()` so the team can test the pick/shake interactions in each approach without them interfering with each other.
-
-**Approaches array:**
+Grid cards use the dimensions for placeholders:
 
 ```jsx
-const approaches = [
-  { id: 'table', name: 'Books on a Table',
-    desc: 'Covers scattered at slight random tilts, as if browsing books spread across a big table.',
-    Card: TableBookCard, grid: 'centered' },
-  { id: 'shelf', name: '3D Bookshelf',
-    desc: 'Books rendered as 3D objects with visible spines and page edges, sitting on wooden shelves.',
-    Card: ShelfBookCard, grid: 'uniform' },
-  { id: 'floating', name: 'Floating Books',
-    desc: 'Books float gently above the surface with a subtle bobbing animation.',
-    Card: FloatingBookCard, grid: 'centered' },
-  { id: 'easel', name: 'Storybook Easels',
-    desc: 'Each book propped on a small easel stand, like a bookshop window display.',
-    Card: EaselBookCard, grid: 'centered' },
-  { id: 'clean', name: 'Simple and Clean',
-    desc: 'No effects. Natural cover proportions in a masonry layout with warm shadows.',
-    Card: CleanBookCard, grid: 'masonry' },
-];
+<div style={{ aspectRatio: `${book.coverWidth} / ${book.coverHeight}` }}>
+  <img src={...} loading="lazy" />
+</div>
 ```
 
-**Overview mode:** All 5 `ExploreSection` components stacked vertically with generous spacing.
+### 4.6 Interior Images Are Spreads
 
-**Fullscreen mode:** Single `ExploreSection` filling the viewport. Prev/next arrows navigate between approaches.
+Each interior image (`page-1.png`, `page-2.png`, etc.) is a **spread** — it shows two facing pages side-by-side. In the 3D book, the left half appears on the back of the left page and the right half on the front of the right page.
+
+**Solution: Three.js texture UV manipulation.** Load each spread image as one texture, then use `texture.offset` and `texture.repeat` to show each half on the correct face:
+
+```js
+// Left half — shown on back face of page N
+const leftHalf = spreadTexture.clone();
+leftHalf.offset.set(0, 0);
+leftHalf.repeat.set(0.5, 1);
+
+// Right half — shown on front face of page N+1
+const rightHalf = spreadTexture.clone();
+rightHalf.offset.set(0.5, 0);
+rightHalf.repeat.set(0.5, 1);
+```
+
+No image preprocessing or splitting needed. Each spread loads once.
+
+### 4.7 Page Mapping From Book Data
+
+Book data: `{ coverImage, interiorImages: ["spread-1", "spread-2", ...], coverWidth, coverHeight }`
+
+| Physical Page | Front Face | Back Face |
+|--------------|------------|-----------|
+| 0 (cover) | `coverImage` (full) | `interiorImages[0]` left half |
+| 1 | `interiorImages[0]` right half | `interiorImages[1]` left half |
+| 2 | `interiorImages[1]` right half | `interiorImages[2]` left half |
+| ... | pattern continues | ... |
+| last | `interiorImages[N-1]` right half | plain warm material (back cover) |
+
+For a book with 0 interior images: single physical page with cover on front, back cover material on back.
+
+### 4.8 3D Book Components
+
+#### Book3DPreview (top-level wrapper)
+
+Replaces `BookCarousel`. Renders a `<dialog>` modal containing the R3F Canvas, navigation controls, and the PickButton.
+
+**Props** (identical to current BookCarousel):
+
+```jsx
+{ book, picked, onPick, onClose, shake }
+```
+
+**Internal state**: `currentPage` (number), `isLoading` (boolean).
+
+**Dialog layout:**
+
+```
++------------------------------------------+
+|  [Book Title]                        [X]  |
+|                                           |
+|  +---------------------------------------+|
+|  |                                       ||
+|  |          R3F Canvas (3D Book)         ||
+|  |                                       ||
+|  +---------------------------------------+|
+|                                           |
+|       [<]    Page 1 of 3    [>]           |
+|                                           |
+|          [ Pick Me! / Picked! ]           |
++------------------------------------------+
+```
+
+Same `<dialog>` pattern as current BookCarousel: `showModal()`, backdrop click closes, Escape closes, native focus trapping.
+
+#### Book3DScene (R3F scene setup)
+
+Everything inside `<Canvas>`. Sets up lighting, environment, and renders the Book3D component.
+
+- **No OrbitControls** — children ages 4-6 cannot use orbit controls. Camera is fixed at a good viewing angle.
+- **Float** — `floatIntensity={0.3}`, `rotationIntensity={0}` (gentle vertical bob only, no rotation).
+- **Directional light** — position `[2, 5, 2]`, intensity 2.5, 2048x2048 shadow map.
+- **Studio environment** — HDRI from drei for ambient lighting.
+- **Ground plane** — shadow-receiving mesh at Y=-1.5, 20% opacity shadow material.
+
+#### Book3D (book assembly)
+
+Assembles the pages from book data and manages sequential page turning with delays.
+
+**Dynamic dimensions** from book data:
+
+```js
+const PAGE_HEIGHT = 1.71; // fixed scale
+const PAGE_WIDTH = PAGE_HEIGHT * (book.coverWidth / book.coverHeight);
+```
+
+**Sequential page turning**: When `currentPage` changes, pages flip one at a time with 150ms delay (single step) or 50ms (jumping multiple pages).
+
+#### Book3DPage (single page with bone animation)
+
+One physical page. Adapted from the tutorial's `Page` component.
+
+- Uses `useTexture` from drei to load front/back images dynamically
+- For pages with no image (blank interior), use a white material
+- Cover (page 0) and back cover (last page) get roughness maps; interior pages get `roughness: 0.1`
+- **Click-to-turn kept** — tapping a page flips it. Emissive orange highlight on hover provides visual feedback. Arrow buttons remain as alternative navigation
+- **Bone animation** — SkinnedMesh with 31 bones per page. Inside/outside/turning curve intensities create realistic page-curl. Easing via `maath/easing.dampAngle`
+
+#### pageGeometry.js (shared geometry builder)
+
+Exports `createPageGeometry(pageWidth, pageHeight)`:
+
+- `BoxGeometry` with 30 horizontal segments, `PAGE_DEPTH = 0.003`
+- Skin indices and weights for bone-based deformation
+- Function (not constant) so dimensions match each book's cover proportions
+- Created once per book preview via `useMemo`
+
+### 4.9 Key Adaptations From Tutorial
+
+| Tutorial | Our Implementation |
+|----------|-------------------|
+| Hardcoded page dimensions (1.28 x 1.71) | Dynamic from `coverWidth/coverHeight` |
+| Hardcoded pages array | Built dynamically from book data |
+| OrbitControls for camera | Fixed camera position (too complex for ages 4-6) |
+| Jotai for state management | Local React state + props |
+| Single-page textures | Spread UV splitting (half-textures via offset/repeat) |
+| Static texture list with preload | Dynamic `useTexture` with `<Suspense>` loading |
+| Click-to-turn on pages | Kept — plus large arrow buttons as alternative |
+| Emissive hover highlight | Kept — provides feedback that pages are tappable |
+| Float (intensity 1, rotation 2) | Subtle float (intensity 0.3, rotation 0) |
+| Bone animation physics | Kept as-is — core realism |
 
 ---
 
 ## 5. Impact on Existing Screens
 
-Phase 1 (exploration page) only modifies 2 existing files:
-
-| File | Change |
-|------|--------|
-| `client/src/App.jsx` | Add `import Explore` + `/explore` route |
-| `client/src/styles/global.css` | Add 3 warm shadow custom properties |
-
-No production screens are modified. The `/browse`, `/thanks`, and `/admin/books` pages are unchanged.
-
-### Phase 2 Changes (after direction is chosen)
-
-| File | Current | Change |
-|------|---------|--------|
-| `BookCard.module.css` | `aspect-ratio: 3/4; object-fit: cover` | `height: auto; display: block` + chosen approach's visual treatment |
-| `BookBrowsing.module.css` | `repeat(6, 1fr)` CSS Grid | Chosen grid strategy + adjusted column counts |
-| `ThankYou.module.css` | Fixed 200px width + 3:4 crop | `max-width: 240px; flex: 0 1 auto` + `height: auto` |
-| `AdminBookCard.module.css` | `48x64, object-fit: cover` | `width: 48px; height: auto; max-height: 64px; object-fit: contain` |
+| Screen | Current behaviour | Change needed |
+|--------|------------------|---------------|
+| **Book Browsing Grid** (`/browse`) | 3:4 aspect ratio, `object-fit: cover`, embla carousel preview | Remove cropping, warm shadows, replace carousel with 3D book |
+| **Thank You** (`/thanks`) | Also crops covers to 3:4 | Remove cropping, warm shadows |
+| **Book Carousel** (preview modal) | Flat embla-carousel in `<dialog>` | Replaced by Book3DPreview |
+| **Manage Books** (`/admin/books`) | Teacher-facing, uses compact cards | Low priority; fix cropping for consistency if easy |
 
 ---
 
 ## 6. Out of Scope
 
-- Changing the carousel/preview modal design
+- Using Three.js for the browsing grid itself (performance with ~5000 books)
 - Redesigning admin screens (Manage Books, Report)
-- Changing the Pick button design, selection logic, or Done button behaviour
-- Backend or API changes
-- Changes to the book data format or scraper output
-- Phase 2 production rollout (separate work item after team review)
+- Changing the PickButton design, selection logic, or Done button behaviour
+- Backend or API changes (beyond adding `coverWidth`/`coverHeight` to book data)
+- Multi-book 3D slider (only one book rendered at a time)
+- Photorealistic rendering (stylized, lightweight approach)
 
 ---
 
-## 7. Performance
+## 7. Implementation Order
 
-- **CSS-only effects.** All transforms, transitions, and animations use CSS. No JS animation libraries.
-- **GPU-composited properties.** Animations use only `transform` and `opacity`. Box-shadow changes happen on hover only (one card at a time).
-- **`loading="lazy"`** on every `<img>` tag — follow existing `BookCard` pattern.
-- **No new dependencies.** Masonry uses CSS `column-count`. All effects are CSS Modules + custom properties.
-- **Exploration page scope.** With only 12 books per section, performance is not a concern. Continuous bobbing (Approach C) and 3D compositing (Approach B) are fine at this scale.
-- **Production considerations** (for Phase 2): Approach C's bobbing should be paused for off-screen cards via `IntersectionObserver` or `content-visibility: auto`. Approach B's `preserve-3d` stacking contexts should be tested with the full ~5k book dataset on Chromebook hardware.
+### Phase 1: Image Dimension Preprocessing
+
+1. Write a small script to read each mock image's dimensions and add `coverWidth`/`coverHeight` to `data/books-sample.json`
+2. Update the scraper to capture dimensions during real scraping runs
+
+### Phase 2: CSS Grid Fixes
+
+1. Add warm shadow tokens to `global.css`
+2. Fix cover cropping in `BookCard.module.css` + apply warm shadows
+3. Use `coverWidth/coverHeight` for aspect-ratio placeholders in `BookCard.jsx`
+4. Add `align-items: start` to grid in `BookBrowsing.module.css`
+5. Fix cover cropping in `ThankYou.module.css`
+6. Visual verification at `/browse` and `/thanks`
+
+### Phase 3: Install R3F Dependencies
+
+Install `three`, `@react-three/fiber` (v9 for React 19), `@react-three/drei`, `maath`. Verify Vite dev server starts cleanly.
+
+### Phase 4: Build 3D Book Components (bottom-up)
+
+1. `pageGeometry.js` — geometry builder
+2. `Book3DPage.jsx` — single page with bone animation + click-to-turn + emissive hover
+3. `Book3D.jsx` — page assembly, spread UV splitting, sequential turning
+4. `Book3DScene.jsx` — scene setup
+5. `Book3DPreview.jsx` + CSS — dialog wrapper with arrow nav + PickButton
+
+### Phase 5: Integration + Testing
+
+1. Swap `BookCarousel` for `Book3DPreview` in `BookBrowsing.jsx` (lazy-loaded)
+2. Test books with 0, 1, 2, and many interior spreads
+3. Verify spread images display correctly (left half on left page, right half on right page)
+4. Verify click-to-turn works alongside arrow buttons
+5. Verify 1366x768 performance
+6. Verify touch targets (arrows, pick, close all >= 48px)
+
+### Phase 6: Cleanup
+
+1. Delete `BookCarousel.jsx` + `BookCarousel.module.css`
+2. Remove `embla-carousel-react` from `package.json`
+
+Each phase is a commit point.
 
 ---
 
-## 8. Cleanup Strategy
+## 8. Performance
 
-When the exploration page is no longer needed:
-
-1. Delete `client/src/components/explore/` (entire directory — all approach cards, grids, section, nav)
-2. Delete `client/src/screens/Explore.jsx` + `Explore.module.css`
-3. Remove `/explore` route + import from `App.jsx`
-
-Three touch points. No exploration code leaks into production components. The exploration cards import `PickButton` and `useBooks` (read-only), but nothing imports from them.
+- **Code-split the 3D bundle** — `React.lazy(() => import('./components/book3d/Book3DPreview.jsx'))` so Three.js (~150-200KB gzipped) only loads on first book tap, not on initial grid load
+- **One book at a time** — only one 3D book is ever rendered. Grid uses plain `<img>` tags with `loading="lazy"`
+- **Texture cleanup** — when the dialog closes and Canvas unmounts, textures are disposed to prevent memory leaks
+- **Shadow map** — 2048x2048 (reduce to 1024 if Chromebook testing shows issues)
+- **Shared geometry** — all pages in one book share a single `BoxGeometry` instance via `useMemo`
+- **CSS-only grid** — all grid transforms, transitions, and shadows use CSS. No JS animation libraries.
 
 ---
 
-## 9. Implementation Order
+## 9. Cleanup Strategy
 
-| Step | Task | Files |
-|------|------|-------|
-| 1 | Add warm shadow tokens | `global.css` |
-| 2 | Build MasonryGrid + UniformRowGrid | `explore/MasonryGrid.*`, `explore/UniformRowGrid.*` |
-| 3 | Build Approach A: TableBookCard | `explore/TableBookCard.*` |
-| 4 | Build Approach B: ShelfBookCard | `explore/ShelfBookCard.*` |
-| 5 | Build Approach C: FloatingBookCard | `explore/FloatingBookCard.*` |
-| 6 | Build Approach D: EaselBookCard | `explore/EaselBookCard.*` |
-| 7 | Build Approach E: CleanBookCard | `explore/CleanBookCard.*` |
-| 8 | Build ExploreSection + ExploreNav | `explore/ExploreSection.*`, `explore/ExploreNav.*` |
-| 9 | Build Explore screen + add route | `screens/Explore.*`, `App.jsx` |
-| 10 | Test with real data at `/explore` | — |
+When the old carousel is no longer needed:
 
-Each step is a commit point.
+1. Delete `client/src/components/BookCarousel.jsx` + `BookCarousel.module.css`
+2. Remove `embla-carousel-react` from `client/package.json`
+
+Two touch points. The Book3DPreview is a drop-in replacement with identical props.
 
 ---
 
 ## 10. Success Criteria
 
-- Every cover in every approach section is displayed in full — no cropping.
-- All 5 approaches are visible on the exploration page with real book data including diverse aspect ratios.
-- Hover/touch interactions work in every section (lift, tilt, bob, shadow changes, pick/shake).
-- The Overview / Full Screen toggle works correctly.
-- Performance is smooth at 1366x768 — no dropped frames during scrolling or hover animations.
-- The existing `/browse`, `/thanks`, and admin screens are completely unchanged.
-- The exploration page can be cleanly removed by deleting the 3 touch points listed in Section 8.
+- Every book cover in the browsing grid is visible in its entirety — no cropping.
+- Tapping a book cover opens a 3D book dialog with realistic page-curl animation.
+- Children can flip pages by tapping on them or using arrow buttons.
+- Interior spread images display correctly — left half on left page, right half on right page.
+- The PickButton works inside the 3D preview dialog.
+- Performance on Chromebook hardware remains smooth — no dropped frames during page flipping.
+- The browsing grid loads fast (Three.js is code-split, not in initial bundle).
+- All student-facing screens show covers at their natural proportions.
 
 ---
 
 ## 11. Verification Steps
 
-1. Run `npm run dev` and navigate to `http://localhost:5173/explore`
-2. Confirm all 5 sections render 12 books with diverse cover shapes
-3. In each section, verify no cover artwork is cropped — compare visually with the same books at `/browse`
-4. Test hover effects in each section: A (lift + scale), B (tilt forward), C (pause bob + rise), D (stand straighter), E (lift)
-5. Test pick/shake interactions in each section
-6. Toggle between Overview and Full Screen modes; navigate between approaches in fullscreen
-7. Resize browser to 1366x768; verify smooth scrolling and animations
-8. Navigate to `/browse` and `/thanks` — confirm they are unchanged
-9. Verify no console errors or warnings
+1. Run `npm run dev` and navigate to `/browse`
+2. Confirm no cover cropping — compare square, portrait, and landscape covers
+3. Confirm warm shadows on cards and hover effects
+4. Confirm no layout shift as images load (aspect-ratio placeholders from `coverWidth/coverHeight`)
+5. Tap a book cover — 3D book dialog should open with loading indicator then 3D book
+6. Use arrow buttons to flip through pages — page-curl animation should be smooth
+7. Click directly on a page to flip it — emissive highlight should appear on hover
+8. Verify spread images: left half on left page, right half on right page when open
+9. Verify PickButton works inside the 3D preview dialog
+10. Close dialog (X button, backdrop click, Escape) — return to grid
+11. Resize to 1366x768 — verify smooth scrolling and page-flip animation
+12. Navigate to `/thanks` — confirm no cover cropping
+13. Check browser console for errors/warnings

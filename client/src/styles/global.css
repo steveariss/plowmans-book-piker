@@ -24,6 +24,11 @@
   --spacing-lg: 24px;
   --spacing-xl: 32px;
 
+  /* Warm shadows — book-like physical presence */
+  --shadow-warm-sm: 0 2px 8px rgba(139, 90, 43, 0.1), 0 4px 20px rgba(139, 90, 43, 0.06);
+  --shadow-warm-md: 0 4px 12px rgba(139, 90, 43, 0.14), 0 8px 28px rgba(139, 90, 43, 0.1);
+  --shadow-warm-lg: 0 8px 24px rgba(139, 90, 43, 0.18), 0 16px 40px rgba(139, 90, 43, 0.12);
+
   /* Typography */
   --font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
   --font-size-body: 18px;

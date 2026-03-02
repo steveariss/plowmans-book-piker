@@ -12,6 +12,7 @@
     "scrape": "cd scraper && node scrape.mjs",
     "convert-images": "bash scripts/convert-images-to-webp.sh",
     "flag-hidden": "node scripts/flag-hidden-books.mjs",
+    "add-dimensions": "node scripts/add-cover-dimensions.mjs",
     "lint": "eslint . --ext .js,.jsx,.mjs",
     "format": "prettier --write ."
   },

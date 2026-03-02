@@ -1,4 +1,4 @@
-import { writeFileSync, mkdirSync, existsSync, unlinkSync } from 'fs';
+import { writeFileSync, mkdirSync, existsSync, unlinkSync, readFileSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { execFileSync } from 'child_process';
@@ -114,6 +114,24 @@ export function generateBooksJson(state) {
       coverImage: `images/${book.id}/cover.webp`,
       interiorImages,
     };
+
+    // Capture cover dimensions from WebP header
+    const coverPath = join(IMAGES_DIR, book.id, 'cover.webp');
+    if (existsSync(coverPath)) {
+      const buf = readFileSync(coverPath);
+      const vp8Start = buf.indexOf('VP8 ');
+      if (vp8Start >= 0) {
+        entry.coverWidth = buf.readUInt16LE(vp8Start + 14) & 0x3fff;
+        entry.coverHeight = buf.readUInt16LE(vp8Start + 16) & 0x3fff;
+      } else {
+        const vp8lStart = buf.indexOf('VP8L');
+        if (vp8lStart >= 0) {
+          const sig = buf.readUInt32LE(vp8lStart + 9);
+          entry.coverWidth = (sig & 0x3fff) + 1;
+          entry.coverHeight = ((sig >> 14) & 0x3fff) + 1;
+        }
+      }
+    }
 
     if (interiorImages.length === 0) {
       entry.hidden = true;

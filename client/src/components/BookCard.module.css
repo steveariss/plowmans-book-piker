@@ -3,13 +3,13 @@
   flex-direction: column;
   background: var(--color-card);
   border-radius: var(--card-border-radius);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  box-shadow: var(--shadow-warm-sm);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-warm-md);
 }
 
 .coverButton {
@@ -22,12 +22,13 @@
   -webkit-tap-highlight-color: transparent;
   border-radius: var(--card-border-radius) var(--card-border-radius) 0 0;
   overflow: hidden;
+  min-height: 120px;
 }
 
 .cover {
   width: 100%;
-  aspect-ratio: 3 / 4;
-  object-fit: cover;
+  height: auto;
+  display: block;
 }
 
 .info {
