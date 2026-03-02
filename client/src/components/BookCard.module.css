@@ -46,7 +46,8 @@
 }
 
 .title {
-  font-size: 16px;
+  font-size: 14px;
+  text-align: center;
   font-weight: 700;
   color: var(--color-text);
   line-height: 1.3;
