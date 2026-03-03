@@ -1,6 +1,7 @@
 import {
   BoxGeometry,
   Float32BufferAttribute,
+  MathUtils,
   Uint16BufferAttribute,
   Vector3,
 } from 'three';
@@ -30,7 +31,7 @@ export function createPageGeometry(pageWidth, pageHeight) {
     vertex.fromBufferAttribute(position, i);
     const x = vertex.x;
 
-    const skinIndex = Math.max(0, Math.floor(x / segmentWidth));
+    const skinIndex = MathUtils.clamp(Math.floor(x / segmentWidth), 0, PAGE_SEGMENTS - 1);
     const skinWeight = (x % segmentWidth) / segmentWidth;
 
     skinIndexes.push(skinIndex, skinIndex + 1, 0, 0);

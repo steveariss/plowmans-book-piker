@@ -1,7 +1,7 @@
-import { useCursor, useTexture } from '@react-three/drei';
+import { useTexture } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { easing } from 'maath';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import {
   Bone,
   Color,
@@ -145,7 +145,7 @@ export default function Book3DPage({
   useFrame((_, delta) => {
     if (!skinnedMeshRef.current) return;
 
-    const emissiveIntensity = highlighted ? 0.22 : 0;
+    const emissiveIntensity = highlighted.current ? 0.22 : 0;
     skinnedMeshRef.current.material[4].emissiveIntensity =
       skinnedMeshRef.current.material[5].emissiveIntensity = MathUtils.lerp(
         skinnedMeshRef.current.material[4].emissiveIntensity,
@@ -154,10 +154,10 @@ export default function Book3DPage({
       );
 
     if (lastOpened.current !== opened) {
-      turnedAt.current = +new Date();
+      turnedAt.current = Date.now();
       lastOpened.current = opened;
     }
-    let turningTime = Math.min(400, new Date() - turnedAt.current) / 400;
+    let turningTime = Math.min(400, Date.now() - turnedAt.current) / 400;
     turningTime = Math.sin(turningTime * Math.PI);
 
     let targetRotation = opened ? -Math.PI / 2 : Math.PI / 2;
@@ -213,8 +213,13 @@ export default function Book3DPage({
     }
   });
 
-  const [highlighted, setHighlighted] = useState(false);
-  useCursor(highlighted);
+  const highlighted = useRef(false);
+
+  useEffect(() => {
+    return () => {
+      document.body.style.cursor = 'auto';
+    };
+  }, []);
 
   return (
     <group
@@ -222,16 +227,19 @@ export default function Book3DPage({
       ref={group}
       onPointerEnter={(e) => {
         e.stopPropagation();
-        setHighlighted(true);
+        highlighted.current = true;
+        document.body.style.cursor = 'pointer';
       }}
       onPointerLeave={(e) => {
         e.stopPropagation();
-        setHighlighted(false);
+        highlighted.current = false;
+        document.body.style.cursor = 'auto';
       }}
       onClick={(e) => {
         e.stopPropagation();
         onTurn(opened ? number : number + 1);
-        setHighlighted(false);
+        highlighted.current = false;
+        document.body.style.cursor = 'auto';
       }}
     >
       <primitive
