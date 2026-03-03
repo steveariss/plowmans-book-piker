@@ -19,6 +19,7 @@ const easingFactorFold = 0.3;
 const insideCurveStrength = 0.18;
 const outsideCurveStrength = 0.05;
 const turningCurveStrength = 0.09;
+const BONE_CURVE_THRESHOLD = Math.round(PAGE_SEGMENTS / 4);
 
 const whiteColor = new Color('white');
 const emissiveColor = new Color('orange');
@@ -97,6 +98,13 @@ export default function Book3DPage({
     };
   }, [loadedTextures, front, back, frontHalf, backHalf, urlsToLoad.length]);
 
+  useEffect(() => {
+    return () => {
+      frontTexture?.dispose();
+      backTexture?.dispose();
+    };
+  }, [frontTexture, backTexture]);
+
   const group = useRef();
   const turnedAt = useRef(0);
   const lastOpened = useRef(opened);
@@ -142,6 +150,19 @@ export default function Book3DPage({
     return mesh;
   }, [geometry, frontTexture, backTexture, number, totalPages, segmentWidth]);
 
+  useEffect(() => {
+    return () => {
+      // Dispose only per-instance materials (indices 4 and 5).
+      // Indices 0-3 are shared module-level pageMaterials — do not dispose.
+      const materials = manualSkinnedMesh.material;
+      if (Array.isArray(materials)) {
+        materials[4]?.dispose();
+        materials[5]?.dispose();
+      }
+      manualSkinnedMesh.skeleton?.dispose();
+    };
+  }, [manualSkinnedMesh]);
+
   useFrame((_, delta) => {
     if (!skinnedMeshRef.current) return;
 
@@ -169,8 +190,8 @@ export default function Book3DPage({
     for (let i = 0; i < bones.length; i++) {
       const target = i === 0 ? group.current : bones[i];
 
-      const insideCurveIntensity = i < 8 ? Math.sin(i * 0.2 + 0.25) : 0;
-      const outsideCurveIntensity = i >= 8 ? Math.cos(i * 0.3 + 0.09) : 0;
+      const insideCurveIntensity = i < BONE_CURVE_THRESHOLD ? Math.sin(i * 0.2 + 0.25) : 0;
+      const outsideCurveIntensity = i >= BONE_CURVE_THRESHOLD ? Math.cos(i * 0.3 + 0.09) : 0;
       const turningIntensity =
         Math.sin(i * Math.PI * (1 / bones.length)) * turningTime;
 
@@ -200,7 +221,7 @@ export default function Book3DPage({
       );
 
       const foldIntensity =
-        i > 8
+        i > BONE_CURVE_THRESHOLD
           ? Math.sin(i * Math.PI * (1 / bones.length) - 0.5) * turningTime
           : 0;
       easing.dampAngle(

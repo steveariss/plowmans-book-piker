@@ -54,6 +54,12 @@ export default function Book3D({ book, currentPage, onTurn, ...props }) {
     [pageWidth]
   );
 
+  useEffect(() => {
+    return () => {
+      geometry.dispose();
+    };
+  }, [geometry]);
+
   // Sequential page turning with delays
   const [delayedPage, setDelayedPage] = useState(currentPage);
 

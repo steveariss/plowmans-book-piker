@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useEffect, useState } from 'react';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import Book3DScene from './Book3DScene.jsx';
 import PickButton from '../PickButton.jsx';
@@ -6,15 +6,23 @@ import styles from './Book3DPreview.module.css';
 
 export default function Book3DPreview({ book, picked, onPick, onClose, shake }) {
   const [currentPage, setCurrentPage] = useState(0);
+  const dialogRef = useRef(null);
 
   const totalPages = (book.interiorImages?.length || 0) + 1;
 
   useEffect(() => {
-    function handleKeyDown(e) {
-      if (e.key === 'Escape') onClose();
+    const dialog = dialogRef.current;
+    if (dialog && !dialog.open) {
+      dialog.showModal();
     }
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+
+    function handleCancel(e) {
+      e.preventDefault();
+      onClose();
+    }
+
+    dialog?.addEventListener('cancel', handleCancel);
+    return () => dialog?.removeEventListener('cancel', handleCancel);
   }, [onClose]);
 
   const handleTurn = useCallback(
@@ -24,8 +32,19 @@ export default function Book3DPreview({ book, picked, onPick, onClose, shake }) 
     [totalPages],
   );
 
+  function handleBackdropClick(e) {
+    if (e.target === dialogRef.current) {
+      onClose();
+    }
+  }
+
   return (
-    <div className={styles.overlay} role="dialog" aria-label={`3D preview of ${book.title}`}>
+    <dialog
+      ref={dialogRef}
+      className={styles.dialog}
+      aria-label={`3D preview of ${book.title}`}
+      onClick={handleBackdropClick}
+    >
       <div className={styles.canvas}>
         <Suspense fallback={<div className={styles.loading}>Loading book...</div>}>
           <Canvas
@@ -84,6 +103,6 @@ export default function Book3DPreview({ book, picked, onPick, onClose, shake }) 
           <PickButton picked={picked} shake={shake} onClick={() => onPick(book.id)} />
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }
