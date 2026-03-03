@@ -1,6 +1,6 @@
 ---
 type: feature
-status: draft
+status: implemented
 created: 2026-02-27
 depends-on: product-book-picker
 ---

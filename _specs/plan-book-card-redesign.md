@@ -1,6 +1,6 @@
 ---
 type: technical
-status: active
+status: implemented
 created: 2026-02-27
 depends-on: technical-book-card-redesign
 ---

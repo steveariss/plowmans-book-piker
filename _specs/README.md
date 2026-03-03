@@ -25,15 +25,15 @@ Specification documents for the Book Picker project. Read this index first to fi
 | ------------------------------------------------------------------------ | --------- | ----------- | ------------------------------------------------------------------------ |
 | [product-book-picker.md](product-book-picker.md)                         | product   | active      | Core product requirements, user flows, and UI/UX details                 |
 | [technical-book-picker.md](technical-book-picker.md)                     | technical | active      | Tech stack, architecture, API contract, DB schema, implementation phases |
-| [feature-book-card-redesign.md](feature-book-card-redesign.md)           | feature   | draft       | Redesign book cards to stop cropping covers, make books feel more real   |
-| [technical-book-card-redesign.md](technical-book-card-redesign.md)       | technical | draft       | 3D book preview (R3F) + CSS grid fixes for cover cropping               |
-| [plan-book-card-redesign.md](plan-book-card-redesign.md)                 | technical | active      | Implementation plan with code-level details for the book card redesign  |
+| [feature-book-card-redesign.md](feature-book-card-redesign.md)           | feature   | implemented | Redesign book cards to stop cropping covers, make books feel more real   |
+| [technical-book-card-redesign.md](technical-book-card-redesign.md)       | technical | implemented | 3D book preview (R3F) + CSS grid fixes for cover cropping               |
+| [plan-book-card-redesign.md](plan-book-card-redesign.md)                 | technical | implemented | Implementation plan with code-level details for the book card redesign  |
 | [feature-image-webp-conversion.md](feature-image-webp-conversion.md)     | feature   | implemented | Convert scraped JPEG images to WebP to reduce storage and bandwidth      |
 | [technical-image-webp-conversion.md](technical-image-webp-conversion.md) | technical | implemented | Implementation plan for batch WebP conversion of book images             |
 | [feature-hidden-books.md](feature-hidden-books.md)                       | feature   | implemented | Hide books without interior images from student browsing                 |
 | [technical-hidden-books.md](technical-hidden-books.md)                   | technical | implemented | Implementation plan for the hidden books flag                            |
-| [feature-scraper-v2.md](feature-scraper-v2.md)                           | feature   | draft       | Re-scrape with filtered URL + capture author, audience, and subjects     |
-| [technical-scraper-v2.md](technical-scraper-v2.md)                       | technical | draft       | Implementation plan for scraper v2: API params, pipeline, output changes |
+| [feature-scraper-v2.md](feature-scraper-v2.md)                           | feature   | implemented | Re-scrape with filtered URL + capture author, audience, and subjects     |
+| [technical-scraper-v2.md](technical-scraper-v2.md)                       | technical | implemented | Implementation plan for scraper v2: API params, pipeline, output changes |
 
 ## Creating a New Spec
 

@@ -4,7 +4,6 @@
   gap: var(--spacing-md);
   padding: var(--spacing-sm) var(--spacing-md);
   background: white;
-  border-radius: 12px;
   cursor: pointer;
   transition: background 0.15s;
   user-select: none;
@@ -29,11 +28,30 @@
 
 .cover {
   width: auto;
-  height: 120px;
+  height: 100px;
   object-fit: cover;
   border-radius: 6px;
   flex-shrink: 0;
   background: #f0f0f0;
+}
+
+.info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.bookMeta {
+  display: flex;
+  gap: var(--spacing-sm);
+  font-size: 14px;
+  color: var(--color-text-light);
+
+  & > :not(:first-child)::before {
+    content: '|';
+    margin-right: var(--spacing-sm);
+    color: var(--color-text-light);
+  }
 }
 
 .title {
@@ -47,21 +65,21 @@
 }
 
 .badge {
+  flex: 0 1 auto;
   font-size: 12px;
   font-weight: 700;
   color: var(--color-danger);
   background: #ffebee;
   padding: 2px 8px;
   border-radius: 8px;
-  flex-shrink: 0;
 }
 
 .badgeHidden {
+  flex: 0 1 auto;
   font-size: 12px;
   font-weight: 700;
   color: #e65100;
   background: #fff3e0;
   padding: 2px 8px;
   border-radius: 8px;
-  flex-shrink: 0;
 }

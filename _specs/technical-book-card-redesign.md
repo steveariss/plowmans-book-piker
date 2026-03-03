@@ -1,6 +1,6 @@
 ---
 type: technical
-status: draft
+status: implemented
 created: 2026-02-27
 depends-on: feature-book-card-redesign
 ---

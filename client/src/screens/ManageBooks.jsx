@@ -47,7 +47,7 @@ export default function ManageBooks() {
       .filter((b) => {
         if (showDeleted) return b.deleted;
         if (showHidden) return b.hidden && !b.deleted;
-        return !b.deleted;
+        return !b.deleted && !b.hidden;
       })
       .filter((b) => !q || b.title.toLowerCase().includes(q));
   }, [books, search, showDeleted, showHidden]);
@@ -55,7 +55,7 @@ export default function ManageBooks() {
   const virtualizer = useVirtualizer({
     count: filteredBooks.length,
     getScrollElement: () => parentRef.current,
-    estimateSize: () => 160,
+    estimateSize: () => 120,
     overscan: 10,
   });
 
