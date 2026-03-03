@@ -35,6 +35,16 @@ export async function fetchBookDetails(state) {
         b2b: obj.b2b || '',
       }));
 
+      // Extract subjects from detail response
+      const rawSubjects = data.subjects || [];
+      book.subjects = rawSubjects.flatMap((group) => {
+        const labels = [group.subject];
+        for (const sub of group.sub_labels || []) {
+          if (sub.label) labels.push(sub.label);
+        }
+        return labels;
+      }).filter(Boolean);
+
       state.detailsFetched.add(book.id);
 
       if ((i + 1) % 25 === 0 || i === needsDetail.length - 1) {

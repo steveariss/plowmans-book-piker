@@ -111,6 +111,9 @@ export function generateBooksJson(state) {
     const entry = {
       id: book.id,
       title: book.title,
+      authors: book.authors || '',
+      audience: book.audience || '',
+      subjects: book.subjects || [],
       coverImage: `images/${book.id}/cover.webp`,
       interiorImages,
     };

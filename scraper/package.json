@@ -5,6 +5,5 @@
   "type": "module",
   "scripts": {
     "scrape": "node scrape.mjs"
-  },
-  "dependencies": {}
+  }
 }

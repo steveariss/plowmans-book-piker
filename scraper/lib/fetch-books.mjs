@@ -26,13 +26,13 @@ export async function fetchBookList(state) {
   // First request to get total count
   if (startOffset === 0) {
     const first = await fetchBrowsePage(state.sessionId, 0, LIMIT);
-    const maxOffset = first.max_offset || 5200;
-    state.maxOffset = maxOffset;
+    const totalBooks = first.row_count || first.max_offset || 5200;
+    state.maxOffset = totalBooks;
 
     for (const row of first.rows || []) {
       books.push(parseBook(row));
     }
-    logProgress(2, `Page 1: got ${first.rows?.length || 0} books (${books.length} total, ~${maxOffset} expected)`);
+    logProgress(2, `Page 1: got ${first.rows?.length || 0} books (${books.length} total, ~${totalBooks} expected)`);
     state.bookList = books;
     saveState(state);
   }

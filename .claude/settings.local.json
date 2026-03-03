@@ -39,7 +39,8 @@
       "Bash(sips -g pixelWidth -g pixelHeight /Users/steveariss/Sites/personal/ai/book-picker/data/images/mock-001/cover.png)",
       "Bash(sips -g pixelWidth -g pixelHeight /Users/steveariss/Sites/personal/ai/book-picker/data/images/zb7C99cVE0ylBN2EXIzC2Q/cover.webp)",
       "Bash(webpinfo /Users/steveariss/Sites/personal/ai/book-picker/data/images/zb7C99cVE0ylBN2EXIzC2Q/cover.webp)",
-      "Bash(npm uninstall embla-carousel-react)"
+      "Bash(npm uninstall embla-carousel-react)",
+      "Bash(npm uninstall playwright)"
     ],
     "deny": [
       "Bash(git push:*)",

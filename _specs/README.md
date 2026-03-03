@@ -32,6 +32,8 @@ Specification documents for the Book Picker project. Read this index first to fi
 | [technical-image-webp-conversion.md](technical-image-webp-conversion.md) | technical | implemented | Implementation plan for batch WebP conversion of book images             |
 | [feature-hidden-books.md](feature-hidden-books.md)                       | feature   | implemented | Hide books without interior images from student browsing                 |
 | [technical-hidden-books.md](technical-hidden-books.md)                   | technical | implemented | Implementation plan for the hidden books flag                            |
+| [feature-scraper-v2.md](feature-scraper-v2.md)                           | feature   | draft       | Re-scrape with filtered URL + capture author, audience, and subjects     |
+| [technical-scraper-v2.md](technical-scraper-v2.md)                       | technical | draft       | Implementation plan for scraper v2: API params, pipeline, output changes |
 
 ## Creating a New Spec
 
