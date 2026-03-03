@@ -12,7 +12,7 @@ function ShelfBook({ book, onPreview }) {
       >
         <img
           className={styles.cover}
-          src={book.coverUrl}
+          src={`/${book.coverImage}`}
           alt={book.title}
           loading="lazy"
           decoding="async"
