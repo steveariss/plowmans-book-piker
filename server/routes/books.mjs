@@ -27,6 +27,9 @@ export function createBooksRouter(books) {
     const allBooks = books.map((b) => ({
       id: b.id,
       title: b.title,
+      authors: b.authors,
+      audience: b.audience,
+      subjects: b.subjects,
       coverImage: b.coverImage,
       deleted: deletedIds.has(b.id),
       hidden: b.hidden || false,
@@ -52,9 +55,7 @@ export function createBooksRouter(books) {
     }
 
     const db = getDatabase();
-    const insert = db.prepare(
-      'INSERT OR IGNORE INTO deleted_books (book_id) VALUES (?)',
-    );
+    const insert = db.prepare('INSERT OR IGNORE INTO deleted_books (book_id) VALUES (?)');
     const deleteMany = db.transaction((ids) => {
       for (const id of ids) {
         insert.run(id);

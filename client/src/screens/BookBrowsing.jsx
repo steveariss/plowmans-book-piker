@@ -1,13 +1,14 @@
-import { useState, useCallback } from 'react';
+import { lazy, Suspense, useState, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useBooks } from '../hooks/useBooks.js';
 import { useSelections } from '../hooks/useSelections.js';
 import { saveSelections } from '../api/client.mjs';
-import BookCarousel from '../components/BookCarousel.jsx';
 import SelectionCounter from '../components/SelectionCounter.jsx';
 import DoneButton from '../components/DoneButton.jsx';
 import BookShelf from '../components/shelf/BookShelf.jsx';
 import styles from './BookBrowsing.module.css';
+
+const Book3DPreview = lazy(() => import('../components/book3d/Book3DPreview.jsx'));
 
 export default function BookBrowsing() {
   const location = useLocation();
@@ -61,13 +62,15 @@ export default function BookBrowsing() {
       <DoneButton visible={isComplete} onClick={handleDone} />
 
       {previewBook && (
-        <BookCarousel
-          book={previewBook}
-          picked={selectedIds.has(previewBook.id)}
-          shake={shakeId === previewBook.id}
-          onPick={toggleSelection}
-          onClose={() => setPreviewBook(null)}
-        />
+        <Suspense fallback={null}>
+          <Book3DPreview
+            book={previewBook}
+            picked={selectedIds.has(previewBook.id)}
+            shake={shakeId === previewBook.id}
+            onPick={toggleSelection}
+            onClose={() => setPreviewBook(null)}
+          />
+        </Suspense>
       )}
     </div>
   );

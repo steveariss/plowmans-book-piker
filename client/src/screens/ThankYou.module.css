@@ -32,15 +32,16 @@
 .bookCard {
   background: white;
   border-radius: var(--card-border-radius);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-warm-md);
   overflow: hidden;
-  width: 200px;
+  max-width: 240px;
+  flex: 0 1 auto;
 }
 
 .cover {
   width: 100%;
-  aspect-ratio: 3 / 4;
-  object-fit: cover;
+  height: auto;
+  display: block;
 }
 
 .title {

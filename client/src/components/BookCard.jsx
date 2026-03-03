@@ -9,6 +9,11 @@ export default function BookCard({ book, picked, onPick, onPreview, shake }) {
         onClick={() => onPreview(book)}
         type="button"
         aria-label={`Preview ${book.title}`}
+        style={
+          book.coverWidth && book.coverHeight
+            ? { aspectRatio: `${book.coverWidth} / ${book.coverHeight}` }
+            : undefined
+        }
       >
         <img
           className={styles.cover}
