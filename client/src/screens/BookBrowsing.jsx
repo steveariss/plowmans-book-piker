@@ -1,12 +1,12 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useBooks } from '../hooks/useBooks.js';
 import { useSelections } from '../hooks/useSelections.js';
 import { saveSelections } from '../api/client.mjs';
-import BookCard from '../components/BookCard.jsx';
 import BookCarousel from '../components/BookCarousel.jsx';
 import SelectionCounter from '../components/SelectionCounter.jsx';
 import DoneButton from '../components/DoneButton.jsx';
+import BookShelf from '../components/shelf/BookShelf.jsx';
 import styles from './BookBrowsing.module.css';
 
 export default function BookBrowsing() {
@@ -25,9 +25,9 @@ export default function BookBrowsing() {
     navigate('/thanks', { state: { studentName, books: selectedBooks } });
   }
 
-  function handlePreview(book) {
+  const handlePreview = useCallback((book) => {
     setPreviewBook(book);
-  }
+  }, []);
 
   if (isLoading) {
     return (
@@ -50,23 +50,15 @@ export default function BookBrowsing() {
     <div className={styles.container}>
       <SelectionCounter count={selectedIds.size} />
 
-      <div className={styles.grid}>
-        {books.map((book) => (
-          <BookCard
-            key={book.id}
-            book={book}
-            picked={selectedIds.has(book.id)}
-            shake={shakeId === book.id}
-            onPick={toggleSelection}
-            onPreview={handlePreview}
-          />
-        ))}
-      </div>
+      <BookShelf
+        books={books}
+        selectedIds={selectedIds}
+        shakeId={shakeId}
+        onPick={toggleSelection}
+        onPreview={handlePreview}
+      />
 
       <DoneButton visible={isComplete} onClick={handleDone} />
-
-      {/* Spacer so last row isn't hidden behind DoneButton */}
-      {isComplete && <div style={{ height: 120 }} />}
 
       {previewBook && (
         <BookCarousel

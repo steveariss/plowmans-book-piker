@@ -1,0 +1,7 @@
+.scrollContainer {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  /* Extra bottom padding so last row isn't hidden behind fixed DoneButton */
+  padding-bottom: 120px;
+}

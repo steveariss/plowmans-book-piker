@@ -24,6 +24,21 @@
   --spacing-lg: 24px;
   --spacing-xl: 32px;
 
+  /* Bookshelf tokens */
+  --shelf-height: 20px;
+  --shelf-front-start: #c9a66b;
+  --shelf-front-end: #8b6914;
+  --shelf-top: #c9a66b;
+  --shelf-top-highlight: #d4b07a;
+  --shelf-shadow: 0 4px 8px rgba(139, 90, 43, 0.15);
+  --chain-color: #8b8b8b;
+  --chain-height: 8px;
+  --sign-bg: #f5e6c8;
+  --sign-border: #a87d45;
+  --sign-picked-bg: var(--color-primary);
+  --sign-picked-border: var(--color-primary-hover);
+  --sign-min-size: 48px;
+
   /* Typography */
   --font-family: 'Nunito', 'Segoe UI', system-ui, sans-serif;
   --font-size-body: 18px;

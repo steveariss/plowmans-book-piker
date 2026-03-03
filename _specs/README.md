@@ -25,12 +25,12 @@ Specification documents for the Book Picker project. Read this index first to fi
 | ------------------------------------------------------------------------ | --------- | ----------- | ------------------------------------------------------------------------ |
 | [product-book-picker.md](product-book-picker.md)                         | product   | active      | Core product requirements, user flows, and UI/UX details                 |
 | [technical-book-picker.md](technical-book-picker.md)                     | technical | active      | Tech stack, architecture, API contract, DB schema, implementation phases |
-| [feature-book-card-redesign.md](feature-book-card-redesign.md)           | feature   | draft       | Redesign book cards to stop cropping covers, make books feel more real   |
-| [technical-book-card-redesign.md](technical-book-card-redesign.md)       | technical | draft       | Implementation plan for the book card redesign exploration page          |
 | [feature-image-webp-conversion.md](feature-image-webp-conversion.md)     | feature   | implemented | Convert scraped JPEG images to WebP to reduce storage and bandwidth      |
 | [technical-image-webp-conversion.md](technical-image-webp-conversion.md) | technical | implemented | Implementation plan for batch WebP conversion of book images             |
 | [feature-hidden-books.md](feature-hidden-books.md)                       | feature   | implemented | Hide books without interior images from student browsing                 |
 | [technical-hidden-books.md](technical-hidden-books.md)                   | technical | implemented | Implementation plan for the hidden books flag                            |
+| [feature-browsing-redesign.md](feature-browsing-redesign.md)             | feature   | draft       | Bookshelf UX redesign for the student browsing page                      |
+| [technical-browsing-redesign.md](technical-browsing-redesign.md)         | technical | draft       | Implementation plan for the bookshelf browsing redesign                  |
 
 ## Creating a New Spec
 
