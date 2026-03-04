@@ -34,8 +34,8 @@ Specification documents for the Book Picker project. Read this index first to fi
 | [technical-hidden-books.md](technical-hidden-books.md)                   | technical | implemented | Implementation plan for the hidden books flag                            |
 | [feature-scraper-v2.md](feature-scraper-v2.md)                           | feature   | implemented | Re-scrape with filtered URL + capture author, audience, and subjects     |
 | [technical-scraper-v2.md](technical-scraper-v2.md)                       | technical | implemented | Implementation plan for scraper v2: API params, pipeline, output changes |
-| [feature-browsing-redesign.md](feature-browsing-redesign.md)             | feature   | draft       | Bookshelf UX redesign for the student browsing page                      |
-| [technical-browsing-redesign.md](technical-browsing-redesign.md)         | technical | draft       | Implementation plan for the bookshelf browsing redesign                  |
+| [feature-browsing-redesign.md](feature-browsing-redesign.md)             | feature   | implemented | Bookshelf UX redesign for the student browsing page                      |
+| [technical-browsing-redesign.md](technical-browsing-redesign.md)         | technical | implemented | Implementation plan for the bookshelf browsing redesign                  |
 
 ## Creating a New Spec
 

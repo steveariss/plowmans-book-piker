@@ -45,7 +45,8 @@
       "WebFetch(domain:cdpn.io)",
       "Read(//Users/steveariss/Sites/personal/ai/book-picker/client/src/**)",
       "Read(//Users/steveariss/Sites/personal/ai/book-picker/_specs/**)",
-      "WebFetch(domain:freefrontend.com)"
+      "WebFetch(domain:freefrontend.com)",
+      "Bash(git worktree remove .claude/worktrees/browsing-redesign)"
     ],
     "deny": [
       "Bash(git push:*)",

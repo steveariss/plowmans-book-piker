@@ -1,6 +1,6 @@
 ---
 type: technical
-status: draft
+status: implemented
 created: 2026-03-03
 depends-on: feature-browsing-redesign
 ---
