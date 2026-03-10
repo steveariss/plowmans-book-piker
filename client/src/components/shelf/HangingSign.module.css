@@ -4,20 +4,6 @@
   align-items: center;
 }
 
-.chains {
-  display: flex;
-  justify-content: center;
-  gap: 20px;
-  height: var(--chain-height);
-}
-
-.chain {
-  width: 2px;
-  height: var(--chain-height);
-  background: var(--chain-color);
-  border-radius: 1px;
-}
-
 .sign {
   perspective: 800px;
   min-width: var(--sign-min-size);

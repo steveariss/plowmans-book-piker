@@ -16,7 +16,7 @@
 
 .coverButton:hover,
 .coverButton:active {
-  transform: rotateX(-3deg) scale(1.03);
+  transform: rotateX(-2deg) scale(1);
 }
 
 .cover {

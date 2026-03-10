@@ -7,7 +7,7 @@
   --color-danger: #f44336;
   --color-danger-hover: #d32f2f;
   --color-warning: #ff9800;
-  --color-bg: #fff8e1;
+  --color-bg: #dbf6ff;
   --color-card: #ffffff;
   --color-text: #333333;
   --color-text-light: #666666;
@@ -30,9 +30,9 @@
   --shadow-warm-lg: 0 8px 24px rgba(139, 90, 43, 0.18), 0 16px 40px rgba(139, 90, 43, 0.12);
 
   /* Bookshelf tokens */
-  --shelf-height: 20px;
-  --shelf-front-start: #c9a66b;
-  --shelf-front-end: #8b6914;
+  --shelf-height: 60px;
+  --shelf-front-start: #90723e;
+  --shelf-front-end: #b58305;
   --shelf-top: #c9a66b;
   --shelf-top-highlight: #d4b07a;
   --shelf-shadow: 0 4px 8px rgba(139, 90, 43, 0.15);

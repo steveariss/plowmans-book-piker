@@ -17,8 +17,7 @@ export default function BookBrowsing() {
   const [previewBook, setPreviewBook] = useState(null);
 
   const { books, isLoading, error } = useBooks();
-  const { selectedIds, toggleSelection, isComplete, selectedBooks, shakeId } =
-    useSelections(books);
+  const { selectedIds, toggleSelection, isComplete, selectedBooks, shakeId } = useSelections(books);
 
   async function handleDone() {
     const booksPayload = selectedBooks.map((b) => ({ id: b.id, title: b.title }));
@@ -49,7 +48,9 @@ export default function BookBrowsing() {
 
   return (
     <div className={styles.container}>
-      <SelectionCounter count={selectedIds.size} />
+      <div className={styles.selectionContainer}>
+        <SelectionCounter count={selectedIds.size} />
+      </div>
 
       <BookShelf
         books={books}

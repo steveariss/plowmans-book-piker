@@ -12,10 +12,6 @@ function HangingSign({ bookId, title, picked, shake, onPick }) {
 
   return (
     <div className={containerClass}>
-      <div className={styles.chains}>
-        <div className={styles.chain} />
-        <div className={styles.chain} />
-      </div>
       <div className={styles.sign}>
         <button
           className={styles.signInner}

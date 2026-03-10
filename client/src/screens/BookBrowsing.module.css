@@ -4,6 +4,16 @@
   height: 100vh;
 }
 
+.selectionContainer {
+  position: fixed;
+  display: flex;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  width: 100%;
+  z-index: 10;
+}
+
 .loading {
   display: flex;
   flex-direction: column;
