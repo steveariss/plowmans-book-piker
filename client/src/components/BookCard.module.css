@@ -3,40 +3,49 @@
   flex-direction: column;
   background: var(--color-card);
   border-radius: var(--card-border-radius);
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: var(--shadow-warm-sm);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+  height: 100%;
 }
 
 .card:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--shadow-elevation-high);
 }
 
 .coverButton {
   display: block;
   width: 100%;
-  padding: 0;
+  padding: 10px;
   border: none;
-  background: #f0f0f0;
+  background: var(--color-card);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   border-radius: var(--card-border-radius) var(--card-border-radius) 0 0;
-  overflow: hidden;
+  /* overflow: hidden; */
+  min-height: 120px;
+  flex-grow: 1;
 }
 
 .cover {
   width: 100%;
-  aspect-ratio: 3 / 4;
-  object-fit: cover;
+  height: auto;
+  display: block;
+  box-shadow: var(--shadow-elevation-high);
+  border-radius: 4px;
+  rotate: -1deg;
 }
 
 .info {
   padding: var(--spacing-sm) var(--spacing-md);
-  flex: 1;
+  flex: 0 1 auto;
 }
 
 .title {
-  font-size: 16px;
+  font-size: 14px;
+  text-align: center;
   font-weight: 700;
   color: var(--color-text);
   line-height: 1.3;

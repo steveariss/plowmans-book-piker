@@ -104,7 +104,15 @@ for (let i = 0; i < books.length; i++) {
   mkdirSync(bookDir, { recursive: true });
 
   const [r, g, b] = coverColors[i % coverColors.length];
-  const coverPng = createPNG(300, 400, r, g, b);
+
+  // Vary cover dimensions to test different aspect ratios
+  const bookNum = parseInt(book.id.replace('mock-', ''), 10);
+  let coverW = 300, coverH = 400; // default portrait 3:4
+  if (bookNum === 11 || bookNum === 12) { coverW = 400; coverH = 400; } // square (board books)
+  else if (bookNum === 13 || bookNum === 14) { coverW = 500; coverH = 350; } // landscape
+  else if (bookNum === 15) { coverW = 250; coverH = 450; } // tall/narrow
+
+  const coverPng = createPNG(coverW, coverH, r, g, b);
   writeFileSync(join(bookDir, 'cover.png'), coverPng);
 
   for (let p = 0; p < book.interiorImages.length; p++) {

@@ -1,0 +1,43 @@
+.row {
+  padding: 0 var(--spacing-md);
+}
+
+.booksZone {
+  display: grid;
+  gap: var(--spacing-xl);
+  align-items: end;
+  padding: 0 var(--spacing-sm);
+}
+
+.shelf {
+  position: relative;
+  width: 100%;
+  height: var(--shelf-height);
+  background: linear-gradient(180deg, var(--shelf-front-start) 0%, var(--shelf-front-end) 40%);
+  border-radius: 0 0 4px 4px;
+  box-shadow: var(--shelf-shadow);
+}
+
+.shelf::before {
+  content: '';
+  position: absolute;
+  top: 0px;
+  left: -2px;
+  right: -2px;
+  height: 10px;
+  background: linear-gradient(180deg, var(--shelf-top-highlight) 0%, var(--shelf-top) 100%);
+  border-radius: 2px 2px 0 0;
+}
+
+.signsZone {
+  position: absolute;
+  width: 100%;
+  bottom: 0;
+  display: grid;
+  gap: var(--spacing-md);
+  justify-items: center;
+}
+
+.rowBottom {
+  height: var(--spacing-md);
+}

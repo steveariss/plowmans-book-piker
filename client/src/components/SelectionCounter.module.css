@@ -10,9 +10,7 @@
   font-size: 22px;
   font-weight: 700;
   color: var(--color-text);
-  position: sticky;
   top: var(--spacing-md);
-  z-index: 10;
   width: fit-content;
   margin: 0 auto var(--spacing-lg);
 }

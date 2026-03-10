@@ -1,23 +1,17 @@
 .container {
-  padding: var(--spacing-lg);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
 }
 
-.grid {
-  display: grid;
-  grid-template-columns: repeat(6, 1fr);
-  gap: var(--spacing-lg);
-}
-
-@media (max-width: 1200px) {
-  .grid {
-    grid-template-columns: repeat(5, 1fr);
-  }
-}
-
-@media (max-width: 900px) {
-  .grid {
-    grid-template-columns: repeat(4, 1fr);
-  }
+.selectionContainer {
+  position: fixed;
+  display: flex;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  width: 100%;
+  z-index: 10;
 }
 
 .loading {

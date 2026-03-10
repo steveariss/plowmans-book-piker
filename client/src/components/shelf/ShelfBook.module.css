@@ -1,0 +1,37 @@
+.bookWrapper {
+  perspective: 600px;
+  display: flex;
+  justify-content: center;
+}
+
+.coverButton {
+  display: block;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  transform-style: preserve-3d;
+  transform-origin: bottom center;
+  transform: rotateX(6deg);
+  transition: transform 0.3s ease;
+}
+
+.coverButton:hover,
+.coverButton:active {
+  transform: rotateX(-2deg) scale(1);
+}
+
+.cover {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 4px;
+  box-shadow:
+    0 10px 20px -5px rgba(0, 0, 0, 0.3),
+    0 4px 8px -4px rgba(0, 0, 0, 0.2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .coverButton {
+    transform: none;
+    transition: none;
+  }
+}

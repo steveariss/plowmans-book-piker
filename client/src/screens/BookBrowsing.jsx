@@ -1,13 +1,14 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useBooks } from '../hooks/useBooks.js';
 import { useSelections } from '../hooks/useSelections.js';
 import { saveSelections } from '../api/client.mjs';
-import BookCard from '../components/BookCard.jsx';
-import BookCarousel from '../components/BookCarousel.jsx';
 import SelectionCounter from '../components/SelectionCounter.jsx';
 import DoneButton from '../components/DoneButton.jsx';
+import BookShelf from '../components/shelf/BookShelf.jsx';
 import styles from './BookBrowsing.module.css';
+
+const Book3DPreview = lazy(() => import('../components/book3d/Book3DPreview.jsx'));
 
 export default function BookBrowsing() {
   const location = useLocation();
@@ -16,8 +17,7 @@ export default function BookBrowsing() {
   const [previewBook, setPreviewBook] = useState(null);
 
   const { books, isLoading, error } = useBooks();
-  const { selectedIds, toggleSelection, isComplete, selectedBooks, shakeId } =
-    useSelections(books);
+  const { selectedIds, toggleSelection, isComplete, selectedBooks, shakeId } = useSelections(books);
 
   async function handleDone() {
     const booksPayload = selectedBooks.map((b) => ({ id: b.id, title: b.title }));
@@ -25,9 +25,9 @@ export default function BookBrowsing() {
     navigate('/thanks', { state: { studentName, books: selectedBooks } });
   }
 
-  function handlePreview(book) {
+  const handlePreview = useCallback((book) => {
     setPreviewBook(book);
-  }
+  }, []);
 
   if (isLoading) {
     return (
@@ -48,34 +48,30 @@ export default function BookBrowsing() {
 
   return (
     <div className={styles.container}>
-      <SelectionCounter count={selectedIds.size} />
-
-      <div className={styles.grid}>
-        {books.map((book) => (
-          <BookCard
-            key={book.id}
-            book={book}
-            picked={selectedIds.has(book.id)}
-            shake={shakeId === book.id}
-            onPick={toggleSelection}
-            onPreview={handlePreview}
-          />
-        ))}
+      <div className={styles.selectionContainer}>
+        <SelectionCounter count={selectedIds.size} />
       </div>
+
+      <BookShelf
+        books={books}
+        selectedIds={selectedIds}
+        shakeId={shakeId}
+        onPick={toggleSelection}
+        onPreview={handlePreview}
+      />
 
       <DoneButton visible={isComplete} onClick={handleDone} />
 
-      {/* Spacer so last row isn't hidden behind DoneButton */}
-      {isComplete && <div style={{ height: 120 }} />}
-
       {previewBook && (
-        <BookCarousel
-          book={previewBook}
-          picked={selectedIds.has(previewBook.id)}
-          shake={shakeId === previewBook.id}
-          onPick={toggleSelection}
-          onClose={() => setPreviewBook(null)}
-        />
+        <Suspense fallback={null}>
+          <Book3DPreview
+            book={previewBook}
+            picked={selectedIds.has(previewBook.id)}
+            shake={shakeId === previewBook.id}
+            onPick={toggleSelection}
+            onClose={() => setPreviewBook(null)}
+          />
+        </Suspense>
       )}
     </div>
   );
