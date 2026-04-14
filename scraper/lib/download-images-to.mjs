@@ -137,10 +137,6 @@ export function generateBooksJsonTo(state, { imagesDir, outputFile, imagePathPre
       }
     }
 
-    if (interiorImages.length === 0) {
-      entry.hidden = true;
-    }
-
     return entry;
   });
 
