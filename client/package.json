@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port 5173",
+    "dev:preview": "vite --port 5174 --mode preview",
     "build": "vite build",
+    "build:preview": "vite build --mode preview",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -8,6 +8,7 @@
     "dev:server": "cd server && node --watch index.mjs",
     "dev:client": "cd client && npx vite --port 5173",
     "build": "cd client && npx vite build",
+    "build:preview": "cd client && npx vite build --mode preview",
     "start": "cd server && node index.mjs",
     "scrape": "cd scraper && node scrape.mjs",
     "scrape:invoice": "cd scraper && node scrape-invoice.mjs",
