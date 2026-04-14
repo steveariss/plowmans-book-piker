@@ -8,29 +8,49 @@ no HTTP basic auth — so teachers can open the link without credentials.
 
 The main student-facing site is completely unaffected by this deployment.
 
+- **Domain:** `new-book-preview.i-made-a-thing.com`
+- **Droplet path:** `~/new-book-preview` (your home directory on the droplet)
+- **Express port:** `3001` (the main site uses `3000`)
+- **PM2 process name:** `book-picker-preview`
+
 ## Prerequisites
 
 - Existing droplet already running the main Book Picker site per
   `deploy-digitalocean.md`
 - PM2 and NGINX already installed
-- A domain or subdomain pointed at the droplet
-  (e.g. `preview-books.example.com`)
+- DNS A record for `new-book-preview.i-made-a-thing.com` pointing at the droplet
+- `cwebp` installed locally for the scraper (`brew install webp` on macOS)
 
-## 1. Build both bundles locally
+## 1. Clone the repo on the droplet
 
-```bash
-npm run build            # -> client/dist/
-npm run build:preview    # -> client/dist-preview/
-```
-
-## 2. Generate the invoice dataset
+The preview deployment is its own checkout in your home directory, separate
+from the main site at `/var/www/book-picker`.
 
 ```bash
-npm run scrape:invoice   # -> data/books-invoice.json + data/images-invoice/
+ssh user@your-droplet
+cd ~
+git clone <your-repo-url> new-book-preview
+cd new-book-preview
+git checkout teacher-preview   # or main once merged
+
+# Install all dependencies
+npm install
+cd client && npm install && cd ..
+cd server && npm install && cd ..
 ```
 
-This can take 5–15 minutes depending on how many ISBNs need scraping. It's
-resumable — re-run if interrupted.
+## 2. Generate the invoice dataset locally
+
+The scraper needs `cwebp` (libwebp), which is easier to install on your laptop
+than on the droplet. Run it locally, then rsync the result.
+
+```bash
+# On your laptop, in the project directory:
+npm run scrape:invoice
+```
+
+This produces `data/books-invoice.json` + `data/images-invoice/`. It can take
+5–15 minutes and is resumable — re-run if interrupted.
 
 The ISBN source list lives at `scraper/invoice-isbns.json`. Edit that file
 when a new invoice arrives, then re-run the scraper.
@@ -39,75 +59,67 @@ The scraper runs four phases automatically:
 
 1. **Detail Fetch** — pulls book metadata + interior image keys from the
    BookManager API
-2. **Image Download** — downloads cover + interior pages from the
-   BookManager CDN and converts to webp
+2. **Image Download** — downloads cover + interior pages from the BookManager
+   CDN and converts to webp
 3. **JSON generation** — writes `data/books-invoice.json`
 4. **Cover Upgrade** — for any cover under 300px wide (BookManager serves
    thumbnail-only data for a handful of titles), tries Open Library then
-   Google Books for a higher-resolution replacement. Wrapped in error
-   handling so a third-party outage can never fail the main scrape; if
-   both sources are unavailable the existing covers stay in place.
+   Google Books for a higher-resolution replacement. Wrapped in error handling
+   so a third-party outage can never fail the main scrape; if both sources are
+   unavailable the existing covers stay in place.
 
-## 3. Transfer to the droplet
+## 3. Transfer scraped data + build the client on the droplet
 
-The main app lives at `/var/www/book-picker` on the droplet (per the main
-doc). The preview deployment reuses the same checkout — it just runs a
-second PM2 process pointed at different env vars, so there's no second git
-clone.
-
-From your local machine, rsync the preview build and the invoice data:
+Send the scraped data to the droplet's preview checkout:
 
 ```bash
-rsync -avz client/dist-preview/ \
-  user@droplet:/var/www/book-picker/client/dist-preview/
+# From your laptop:
 rsync -avz data/books-invoice.json \
-  user@droplet:/var/www/book-picker/data/books-invoice.json
+  user@your-droplet:~/new-book-preview/data/books-invoice.json
 rsync -avz data/images-invoice/ \
-  user@droplet:/var/www/book-picker/data/images-invoice/
+  user@your-droplet:~/new-book-preview/data/images-invoice/
 ```
 
-If you prefer isolated deployments, clone the repo a second time to
-`/var/www/book-picker-preview` and follow the main doc's install steps
-there. The instructions below assume the shared-checkout approach.
+Build the preview bundle on the droplet:
+
+```bash
+# On the droplet:
+cd ~/new-book-preview
+npm run build:preview     # -> client/dist-preview/
+```
 
 ## 4. Start the preview process with PM2
 
 The preview process needs three env vars:
 
-- `PORT=3001` — different from the main site's 3000
-- `BOOKS_FILE=books-invoice.json` — tells the server which JSON to load
-- `CLIENT_DIST=client/dist-preview` — tells the server which built client
-  to serve
-
-Start it with PM2:
+- `PORT=3001`
+- `BOOKS_FILE=books-invoice.json`
+- `CLIENT_DIST=client/dist-preview`
 
 ```bash
-cd /var/www/book-picker
+cd ~/new-book-preview
 PORT=3001 BOOKS_FILE=books-invoice.json CLIENT_DIST=client/dist-preview \
   pm2 start server/index.mjs --name book-picker-preview
 pm2 save
 ```
 
-Verify:
+Verify it's running:
 
 ```bash
 curl http://localhost:3001/api/health
 # {"status":"ok","booksFile":"books-invoice.json"}
-```
 
-Note: the preview process writes to the same SQLite file as the main app.
-This is harmless — the preview site never calls any admin or selections
-endpoint. If you want total isolation, set `DATA_DIR` to a separate
-directory and copy the data files there.
+curl -s http://localhost:3001/api/books | head -c 100
+```
 
 ## 5. NGINX server block
 
-Create `/etc/nginx/sites-available/book-picker-preview`:
+Create `/etc/nginx/sites-available/new-book-preview`:
 
 ```nginx
 server {
     listen 80;
-    server_name preview-books.example.com;
+    server_name new-book-preview.i-made-a-thing.com;
 
     # No auth_basic — this site is intentionally public
 
@@ -125,7 +137,7 @@ server {
 Enable and reload:
 
 ```bash
-sudo ln -s /etc/nginx/sites-available/book-picker-preview \
+sudo ln -s /etc/nginx/sites-available/new-book-preview \
   /etc/nginx/sites-enabled/
 sudo nginx -t && sudo nginx -s reload
 ```
@@ -133,7 +145,7 @@ sudo nginx -t && sudo nginx -s reload
 ## 6. HTTPS with Certbot
 
 ```bash
-sudo certbot --nginx -d preview-books.example.com
+sudo certbot --nginx -d new-book-preview.i-made-a-thing.com
 ```
 
 ## 7. Smoke test
@@ -141,38 +153,42 @@ sudo certbot --nginx -d preview-books.example.com
 From your laptop:
 
 ```bash
-curl -sI https://preview-books.example.com/ | head -1
+curl -sI https://new-book-preview.i-made-a-thing.com/ | head -1
 # HTTP/2 200
-curl -s https://preview-books.example.com/api/books | head -c 200
+curl -s https://new-book-preview.i-made-a-thing.com/api/books | head -c 200
 ```
 
-Then open `https://preview-books.example.com/` in a browser and verify:
+Then open `https://new-book-preview.i-made-a-thing.com/` in a browser and
+verify:
 
 1. Loads directly on the browsing grid (no teacher setup screen)
 2. Shows the invoice books
 3. No "picked" counter, no pick buttons, no done button
 4. Book preview dialog still opens and flips pages
+5. Books with interior previews show the orange "Look Inside!" badge
 
 ## Updating the preview site after a new invoice
 
 ```bash
-# Locally:
-# 1. Edit scraper/invoice-isbns.json with the new ISBNs
-# 2. Re-scrape
+# 1. Locally: edit scraper/invoice-isbns.json with the new ISBNs
+# 2. Locally: re-scrape
 npm run scrape:invoice
-# 3. Rebuild only if client code changed
+
+# 3. Locally: transfer the new data
+rsync -avz data/books-invoice.json \
+  user@your-droplet:~/new-book-preview/data/books-invoice.json
+rsync -avz data/images-invoice/ \
+  user@your-droplet:~/new-book-preview/data/images-invoice/
+
+# 4. On the droplet: pull any code changes and rebuild
+ssh user@your-droplet
+cd ~/new-book-preview
+git pull
+npm install                          # only if package.json changed
+cd client && npm install && cd ..    # only if client/package.json changed
 npm run build:preview
 
-# Transfer:
-rsync -avz data/books-invoice.json \
-  user@droplet:/var/www/book-picker/data/
-rsync -avz data/images-invoice/ \
-  user@droplet:/var/www/book-picker/data/images-invoice/
-# Only if rebuilt:
-rsync -avz client/dist-preview/ \
-  user@droplet:/var/www/book-picker/client/dist-preview/
-
-# On the droplet:
+# 5. On the droplet: restart
 pm2 restart book-picker-preview
 ```
 
