@@ -10,6 +10,7 @@ export default function Book3DPreview({ book, picked, onPick, onClose, shake }) 
   const dialogRef = useRef(null);
 
   const totalPages = (book.interiorImages?.length || 0) + 1;
+  const isCoverOnly = !book.interiorImages || book.interiorImages.length === 0;
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -54,7 +55,7 @@ export default function Book3DPreview({ book, picked, onPick, onClose, shake }) 
             gl={{ antialias: true, alpha: true }}
             style={{ background: 'transparent' }}
           >
-            <Book3DScene book={book} currentPage={currentPage} onTurn={handleTurn} />
+            <Book3DScene book={book} currentPage={currentPage} onTurn={handleTurn} centered={isCoverOnly} />
           </Canvas>
         </Suspense>
       </div>
@@ -72,33 +73,35 @@ export default function Book3DPreview({ book, picked, onPick, onClose, shake }) 
       </div>
 
       <div className={styles.bottomBar}>
-        <div className={styles.nav}>
-          <button
-            className={styles.arrow}
-            onClick={() => handleTurn(currentPage - 1)}
-            disabled={currentPage === 0}
-            type="button"
-            aria-label="Previous page"
-          >
-            {'\u2039'}
-          </button>
-          <span className={styles.pageIndicator}>
-            {currentPage === 0
-              ? 'Cover'
-              : currentPage >= totalPages
-                ? 'Back Cover'
-                : `Page ${currentPage} of ${totalPages - 1}`}
-          </span>
-          <button
-            className={styles.arrow}
-            onClick={() => handleTurn(currentPage + 1)}
-            disabled={currentPage >= totalPages}
-            type="button"
-            aria-label="Next page"
-          >
-            {'\u203A'}
-          </button>
-        </div>
+        {!isCoverOnly && (
+          <div className={styles.nav}>
+            <button
+              className={styles.arrow}
+              onClick={() => handleTurn(currentPage - 1)}
+              disabled={currentPage === 0}
+              type="button"
+              aria-label="Previous page"
+            >
+              {'\u2039'}
+            </button>
+            <span className={styles.pageIndicator}>
+              {currentPage === 0
+                ? 'Cover'
+                : currentPage >= totalPages
+                  ? 'Back Cover'
+                  : `Page ${currentPage} of ${totalPages - 1}`}
+            </span>
+            <button
+              className={styles.arrow}
+              onClick={() => handleTurn(currentPage + 1)}
+              disabled={currentPage >= totalPages}
+              type="button"
+              aria-label="Next page"
+            >
+              {'\u203A'}
+            </button>
+          </div>
+        )}
 
         <div className={styles.pickWrapper}>
           {!IS_PREVIEW && (
