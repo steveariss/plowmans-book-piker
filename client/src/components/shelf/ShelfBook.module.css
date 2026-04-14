@@ -6,7 +6,11 @@
 
 .coverButton {
   display: block;
+  width: 100%;
   padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
   -webkit-tap-highlight-color: transparent;
   transform-style: preserve-3d;
   transform-origin: bottom center;
