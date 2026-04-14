@@ -60,6 +60,43 @@ export async function fetchBrowsePage(sessionId, offset = 0, limit = 100) {
   return res.json();
 }
 
+/**
+ * Look up a book by its 13-digit ISBN. The BookManager browse endpoint's
+ * `t` param is a full-text search that also matches ISBNs, so we use it as
+ * an ISBN→eisbn resolver with l=5 (usually returns one exact hit).
+ * Returns the raw first row whose `isbn` matches exactly, or null.
+ */
+export async function searchByIsbn(sessionId, isbn) {
+  const res = await fetch(`${API_BASE}/browse/get?_cb=${CB}`, {
+    method: 'POST',
+    body: makeFormData({
+      uuid: uuid(),
+      session_id: sessionId,
+      store_id: STORE_ID,
+      b: '[]',
+      s: '[]',
+      n: '[]',
+      d: '[]',
+      f: '[]',
+      a: '[]',
+      o: '0',
+      l: '5',
+      t: isbn,
+      k: '',
+      v: '',
+      x: '',
+      r: '[]',
+      c: '[]',
+      g: '[]',
+      j: '[]',
+    }),
+  });
+  if (!res.ok) throw new Error(`Search request failed: ${res.status}`);
+  const data = await res.json();
+  const rows = data.rows || [];
+  return rows.find((r) => r.isbn === isbn || r.eisbn === isbn) || rows[0] || null;
+}
+
 export async function fetchBookDetail(sessionId, eisbn) {
   const res = await fetch(`${API_BASE}/title/getItem?_cb=${CB}`, {
     method: 'POST',
