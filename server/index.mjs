@@ -10,15 +10,15 @@ import { errorHandler } from './middleware/error-handler.mjs';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
 const dataDir = process.env.DATA_DIR || join(root, 'data');
+const booksFile = process.env.BOOKS_FILE || 'books.json';
 
-// Load book data into memory
 function loadBooks() {
-  const booksPath = join(dataDir, 'books.json');
+  const booksPath = join(dataDir, booksFile);
   const samplePath = join(dataDir, 'books-sample.json');
   const filePath = existsSync(booksPath) ? booksPath : samplePath;
 
   if (!existsSync(filePath)) {
-    console.warn('No book data found. Place books.json or books-sample.json in data/');
+    console.warn(`No book data found. Place ${booksFile} or books-sample.json in ${dataDir}`);
     return [];
   }
 
@@ -30,44 +30,45 @@ function loadBooks() {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Initialize database
 getDatabase();
-
-// Load books
 const books = loadBooks();
 
-// Middleware
 app.use(express.json());
 
-// API routes
 app.use('/api/books', createBooksRouter(books));
 app.use('/api/selections', createSelectionsRouter());
 
-// Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok' });
+  res.json({ status: 'ok', booksFile });
 });
 
-// Static file serving: book images
+// Static file serving: book images (main dataset)
 app.use('/images', express.static(join(dataDir, 'images'), {
   maxAge: '1d',
   immutable: true,
 }));
 
-// Static file serving: built React app
-const clientDist = join(root, 'client', 'dist');
+// Static file serving: invoice dataset images (used by preview deployment)
+app.use('/images-invoice', express.static(join(dataDir, 'images-invoice'), {
+  maxAge: '1d',
+  immutable: true,
+}));
+
+// Static file serving: built React app. Preview deployment points this at
+// dist-preview via CLIENT_DIST env var.
+const clientDist = process.env.CLIENT_DIST
+  ? (process.env.CLIENT_DIST.startsWith('/') ? process.env.CLIENT_DIST : join(root, process.env.CLIENT_DIST))
+  : join(root, 'client', 'dist');
+
 if (existsSync(clientDist)) {
   app.use(express.static(clientDist));
-
-  // SPA fallback — serve index.html for all non-API, non-static routes
   app.get('*', (req, res) => {
     res.sendFile(join(clientDist, 'index.html'));
   });
 }
 
-// Error handler
 app.use(errorHandler);
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on http://localhost:${PORT} (BOOKS_FILE=${booksFile})`);
 });
