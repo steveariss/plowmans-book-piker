@@ -1,7 +1,10 @@
 import { memo } from 'react';
+import { IS_PREVIEW } from '../../config.js';
 import styles from './HangingSign.module.css';
 
 function HangingSign({ bookId, title, picked, shake, onPick }) {
+  if (IS_PREVIEW) return null;
+
   const containerClass = [
     styles.signContainer,
     picked ? styles.picked : '',

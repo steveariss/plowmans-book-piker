@@ -2,6 +2,7 @@ import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { Canvas } from '@react-three/fiber';
 import Book3DScene from './Book3DScene.jsx';
 import PickButton from '../PickButton.jsx';
+import { IS_PREVIEW } from '../../config.js';
 import styles from './Book3DPreview.module.css';
 
 export default function Book3DPreview({ book, picked, onPick, onClose, shake }) {
@@ -100,7 +101,9 @@ export default function Book3DPreview({ book, picked, onPick, onClose, shake }) 
         </div>
 
         <div className={styles.pickWrapper}>
-          <PickButton picked={picked} shake={shake} onClick={() => onPick(book.id)} />
+          {!IS_PREVIEW && (
+            <PickButton picked={picked} shake={shake} onClick={() => onPick(book.id)} />
+          )}
         </div>
       </div>
     </dialog>

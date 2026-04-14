@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useBooks } from '../hooks/useBooks.js';
 import { useSelections } from '../hooks/useSelections.js';
 import { saveSelections } from '../api/client.mjs';
+import { IS_PREVIEW } from '../config.js';
 import SelectionCounter from '../components/SelectionCounter.jsx';
 import DoneButton from '../components/DoneButton.jsx';
 import BookShelf from '../components/shelf/BookShelf.jsx';
@@ -48,9 +49,11 @@ export default function BookBrowsing() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.selectionContainer}>
-        <SelectionCounter count={selectedIds.size} />
-      </div>
+      {!IS_PREVIEW && (
+        <div className={styles.selectionContainer}>
+          <SelectionCounter count={selectedIds.size} />
+        </div>
+      )}
 
       <BookShelf
         books={books}
@@ -60,7 +63,7 @@ export default function BookBrowsing() {
         onPreview={handlePreview}
       />
 
-      <DoneButton visible={isComplete} onClick={handleDone} />
+      {!IS_PREVIEW && <DoneButton visible={isComplete} onClick={handleDone} />}
 
       {previewBook && (
         <Suspense fallback={null}>
