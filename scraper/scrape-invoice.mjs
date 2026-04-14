@@ -4,6 +4,7 @@ import { fileURLToPath } from 'url';
 import { logProgress } from './lib/progress.mjs';
 import { fetchInvoiceDetails } from './lib/fetch-invoice-details.mjs';
 import { downloadAllImagesTo, generateBooksJsonTo } from './lib/download-images-to.mjs';
+import { upgradeLowResCovers } from './upgrade-low-res-covers.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..');
@@ -66,6 +67,16 @@ async function main() {
       imagePathPrefix: 'images-invoice',
     });
     saveLocalState(state);
+
+    // Optional post-pass: upgrade any sub-300px BookManager covers from
+    // Open Library / Google Books. Wrapped so a third-party API outage
+    // can never fail the scrape — covers stay as-is in that case.
+    logProgress(5, '--- Phase: Cover Upgrade ---');
+    try {
+      await upgradeLowResCovers();
+    } catch (err) {
+      logProgress(5, `Cover upgrade skipped: ${err.message}`);
+    }
 
     console.log('\n=== Invoice scraping complete! ===');
     console.log(`Books in bookList: ${state.bookList.length}`);

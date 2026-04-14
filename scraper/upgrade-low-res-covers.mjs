@@ -88,10 +88,14 @@ async function upgradeBook(book) {
   return null;
 }
 
-async function main() {
+export async function upgradeLowResCovers() {
   const books = JSON.parse(readFileSync(BOOKS_FILE, 'utf-8'));
 
   const lowRes = books.filter((b) => (b.coverWidth || 0) < MIN_GOOD_WIDTH);
+  if (lowRes.length === 0) {
+    console.log('No low-res covers to upgrade.');
+    return { upgraded: 0, total: 0 };
+  }
   console.log(`Books with cover width < ${MIN_GOOD_WIDTH}px: ${lowRes.length}\n`);
 
   let upgraded = 0;
@@ -135,9 +139,13 @@ async function main() {
 
   writeFileSync(BOOKS_FILE, JSON.stringify(books, null, 2));
   console.log(`\nUpgraded ${upgraded} of ${lowRes.length} covers.`);
+  return { upgraded, total: lowRes.length };
 }
 
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+// Allow running directly: `node scraper/upgrade-low-res-covers.mjs`
+if (import.meta.url === `file://${process.argv[1]}`) {
+  upgradeLowResCovers().catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });
+}

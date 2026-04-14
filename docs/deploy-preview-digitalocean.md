@@ -35,6 +35,19 @@ resumable — re-run if interrupted.
 The ISBN source list lives at `scraper/invoice-isbns.json`. Edit that file
 when a new invoice arrives, then re-run the scraper.
 
+The scraper runs four phases automatically:
+
+1. **Detail Fetch** — pulls book metadata + interior image keys from the
+   BookManager API
+2. **Image Download** — downloads cover + interior pages from the
+   BookManager CDN and converts to webp
+3. **JSON generation** — writes `data/books-invoice.json`
+4. **Cover Upgrade** — for any cover under 300px wide (BookManager serves
+   thumbnail-only data for a handful of titles), tries Open Library then
+   Google Books for a higher-resolution replacement. Wrapped in error
+   handling so a third-party outage can never fail the main scrape; if
+   both sources are unavailable the existing covers stay in place.
+
 ## 3. Transfer to the droplet
 
 The main app lives at `/var/www/book-picker` on the droplet (per the main
